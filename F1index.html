@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080808">
+<title>F1 Tippspiel 2026</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏎️</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- ═══════════════════════════════════════════════════
+     FIREBASE — ersetze die Werte unten mit deinen eigenen
+     aus der Firebase Console (siehe SETUP.md)
+     ═══════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+// ╔═══════════════════════════════════════════════════╗
+// ║  HIER DEINE FIREBASE CONFIG EINTRAGEN            ║
+// ╚═══════════════════════════════════════════════════╝
+const firebaseConfig = {
+  apiKey: "AIzaSyDr-NjPYrUbIu0phN4BONdvYluNL9EvURA",
+  authDomain: "f1-tippspiel-98cff.firebaseapp.com",
+  databaseURL: "https://f1-tippspiel-98cff-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "f1-tippspiel-98cff",
+  storageBucket: "f1-tippspiel-98cff.firebasestorage.app",
+  messagingSenderId: "691036555251",
+  appId: "1:691036555251:web:281e68cb81ce782156b486",
+  measurementId: "G-7F4RPHH4TV"
+};
+
+let db = null;
+let firebaseReady = false;
+let ignoreNextUpdate = false;
+
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getDatabase(app);
+  firebaseReady = true;
+
+  // Listen for changes from the other player
+  const dataRef = ref(db, 'tippspiel/state');
+  onValue(dataRef, (snapshot) => {
+    if (ignoreNextUpdate) { ignoreNextUpdate = false; return; }
+    const data = snapshot.val();
+    if (data && data.races && data.races.length === window.RACES_COUNT) {
+      window.S = data;
+      localStorage.setItem('f1t26b', JSON.stringify(data));
+      window.renderAll();
+      window.updateSyncStatus('ok', 'Live-Sync aktiv');
+    }
+  }, (error) => {
+    console.warn('Firebase read error:', error);
+    window.updateSyncStatus('err', 'Sync-Fehler');
+  });
+
+  window.updateSyncStatus('ok', 'Live-Sync aktiv');
+} catch(e) {
+  console.warn('Firebase not configured:', e);
+  window.updateSyncStatus('off', 'Nur lokal (Firebase nicht konfiguriert)');
+}
+
+// Global save function — writes to Firebase + localStorage
+window.firebaseSave = function(state) {
+  localStorage.setItem('f1t26b', JSON.stringify(state));
+  if (firebaseReady && db) {
+    ignoreNextUpdate = true;
+    const dataRef = ref(db, 'tippspiel/state');
+    set(dataRef, state).then(() => {
+      window.updateSyncStatus('ok', 'Synchronisiert');
+    }).catch((err) => {
+      console.warn('Firebase write error:', err);
+      window.updateSyncStatus('err', 'Sync fehlgeschlagen');
+      ignoreNextUpdate = false;
+    });
+  }
+};
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:#080808;--s1:#111;--s2:#181818;--s3:#202020;
+  --border:#2c2c2c;--border2:#383838;
+  --text:#efefef;--muted:#666;--muted2:#888;
+  --red:#e8001d;--red2:#ff1a33;--blue:#1e90ff;
+  --gold:#f5c518;--green:#00e676;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+header{position:sticky;top:0;z-index:200;background:rgba(8,8,8,0.93);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-flag{display:flex;gap:2px;}
+.logo-flag span{display:block;width:4px;height:20px;border-radius:1px;}
+.logo-flag span:nth-child(odd){background:#fff;}.logo-flag span:nth-child(even){background:#111;}
+.logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:3px;text-transform:uppercase;}
+.logo-text em{color:var(--red);font-style:normal;}
+.season-badge{background:var(--red);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;padding:3px 9px;border-radius:3px;}
+
+.sync-bar{display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--s1);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);}
+.sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background .3s;}
+.sync-dot.ok{background:var(--green);box-shadow:0 0 6px rgba(0,230,118,0.4);}
+.sync-dot.off{background:var(--muted);}
+.sync-dot.err{background:#ff4444;box-shadow:0 0 6px rgba(255,68,68,0.4);}
+.sync-dot.saving{background:var(--gold);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--s1);padding:0 12px;overflow-x:auto;position:sticky;top:54px;z-index:150;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:12px 16px;cursor:pointer;color:var(--muted);font-size:12px;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:'Barlow Condensed',sans-serif;font-weight:600;-webkit-tap-highlight-color:transparent;}
+.tab:hover{color:var(--muted2);}
+.tab.active{color:var(--red);border-bottom-color:var(--red);}
+
+main{padding:16px;max-width:1100px;margin:0 auto;padding-bottom:80px;}
+.section{display:none;}.section.active{display:block;}
+
+.score-hero{display:grid;grid-template-columns:1fr auto 1fr;background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.score-side{padding:20px 22px;position:relative;overflow:hidden;}
+.score-bg{position:absolute;right:-8px;top:-8px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:90px;opacity:0.05;line-height:1;pointer-events:none;}
+.score-label{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;font-family:'Barlow Condensed',sans-serif;}
+.score-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.score-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:56px;line-height:1;margin:4px 0;}
+.s1 .score-pts{color:var(--red);}.s2 .score-pts{color:var(--blue);}
+.score-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.chip{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:10px;color:var(--muted2);}
+.chip b{color:var(--text);}
+.vs-col{padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+.vs-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--muted);letter-spacing:2px;}
+.vs-gap{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;}
+.lead-pill{background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:1px;text-transform:uppercase;}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.kpi-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;line-height:1;color:var(--gold);}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+
+.chart-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;}
+.chart-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.chart-stripe{width:3px;height:16px;background:var(--red);border-radius:2px;flex-shrink:0;}
+.chart-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1px;text-transform:uppercase;}
+.chart-wrap{position:relative;}
+
+.race-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;transition:border-color .2s;}
+.race-card:hover{border-color:var(--border2);}
+.race-card.done{border-left:3px solid var(--green);}
+.race-header{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+.race-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--red);width:28px;flex-shrink:0;}
+.race-meta{flex:1;min-width:0;}
+.race-name-txt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.race-tags{display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;align-items:center;}
+.tag{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+.tag.sprint{background:rgba(245,197,24,0.12);color:var(--gold);border:1px solid rgba(245,197,24,0.2);}
+.tag.quali{background:rgba(30,144,255,0.1);color:var(--blue);border:1px solid rgba(30,144,255,0.18);}
+.tag.race-tag{background:rgba(232,0,29,0.1);color:var(--red);border:1px solid rgba(232,0,29,0.18);}
+.race-pts-prev{display:flex;gap:12px;}
+.pp-item{text-align:right;}
+.pp-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;line-height:1;}
+.pp-val.c1{color:var(--red);}.pp-val.c2{color:var(--blue);}
+.pp-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;}
+.race-chev{color:var(--muted);transition:transform .2s;font-size:14px;flex-shrink:0;}
+.race-card.open .race-chev{transform:rotate(180deg);}
+
+.race-body{display:none;padding:0 14px 14px;}
+.race-card.open .race-body{display:block;}
+
+.sess-block{margin-top:12px;}
+.sess-label{display:flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+
+input[type=number]{
+  width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);padding:10px 12px;font-size:18px;font-family:'Barlow',sans-serif;
+  text-align:center;transition:border-color .2s;-moz-appearance:textfield;-webkit-appearance:none;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+input[type=number]:focus{outline:none;}
+input.inp-s1:focus{border-color:var(--red);}
+input.inp-s2:focus{border-color:var(--blue);}
+
+.save-row{display:flex;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+.save-btn{background:var(--red);color:#fff;border:none;border-radius:7px;padding:10px 24px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.save-btn:hover{background:var(--red2);}
+.save-btn:active{transform:scale(0.97);}
+.save-btn.ok{background:#1a5e3c;}
+
+.legend-row-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.legend-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.legend-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;color:var(--muted2);}
+.leg-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(44,44,44,0.4);font-size:11px;}
+.leg-row:last-child{border-bottom:none;}
+.leg-pos{color:var(--muted);}
+.leg-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--gold);}
+
+.score-table{width:100%;border-collapse:collapse;font-size:12px;}
+.score-table th{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.score-table td{padding:8px 12px;border-bottom:1px solid rgba(44,44,44,0.4);}
+.score-table tr:last-child td{border-bottom:none;}
+.score-table tr:hover td{background:var(--s2);}
+.td-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;}
+.td-pts.c1{color:var(--red);}.td-pts.c2{color:var(--blue);}
+.winner-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;}
+.wb1{background:rgba(232,0,29,0.14);color:var(--red);}
+.wb2{background:rgba(30,144,255,0.14);color:var(--blue);}
+.wbt{background:rgba(100,100,100,0.14);color:var(--muted2);}
+
+.setup-wrap{max-width:400px;margin:0 auto;}
+.setup-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:14px;}
+.setup-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;color:var(--muted2);}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.field label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+input[type=text]{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 13px;font-size:15px;font-family:'Barlow',sans-serif;transition:border-color .2s;-webkit-appearance:none;}
+input[type=text]:focus{outline:none;border-color:var(--red);}
+.main-btn{background:var(--red);color:#fff;border:none;border-radius:7px;padding:10px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;touch-action:manipulation;}
+.main-btn:hover{background:var(--red2);}
+.main-btn:active{transform:scale(0.97);}
+.danger-btn{background:var(--s2);color:var(--muted2);border:1px solid var(--border);border-radius:7px;padding:10px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;touch-action:manipulation;}
+.danger-btn:hover{background:#2a1010;color:#ff7070;border-color:#4a1010;}
+
+.next-race-card{background:linear-gradient(135deg,rgba(232,0,29,0.08),rgba(30,144,255,0.05));border:1px solid rgba(232,0,29,0.25);border-radius:12px;padding:16px 18px;margin-bottom:16px;cursor:pointer;transition:border-color .2s;}
+.next-race-card:hover{border-color:rgba(232,0,29,0.5);}
+.next-race-label{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:2px;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:4px;}
+.next-race-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;letter-spacing:1px;}
+.next-race-info{font-size:12px;color:var(--muted2);margin-top:4px;}
+
+.form-row{display:flex;gap:4px;margin-top:6px;}
+.form-dot{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'Barlow Condensed',sans-serif;}
+.form-dot.w{background:rgba(0,230,118,0.15);color:var(--green);}
+.form-dot.l{background:rgba(232,0,29,0.15);color:var(--red);}
+.form-dot.d{background:rgba(100,100,100,0.15);color:var(--muted2);}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--text);opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap;max-width:90vw;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:680px){
+  header{padding:0 12px;height:50px;}
+  .tabs{padding:0 8px;top:50px;}
+  .tab{padding:11px 13px;font-size:11px;}
+  main{padding:12px;padding-bottom:60px;}
+  .score-hero{grid-template-columns:1fr;border-radius:10px;}
+  .score-side{padding:16px 18px;}
+  .score-pts{font-size:48px;}
+  .score-name{font-size:18px;}
+  .vs-col{flex-direction:row;padding:10px 18px;border:none;border-top:1px solid var(--border);border-left:none;border-right:none;}
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .kpi-val{font-size:28px;}
+  .legend-row-wrap{grid-template-columns:1fr;}
+  .race-header{padding:10px 12px;gap:10px;}
+  .next-race-name{font-size:20px;}
+}
+@media(max-width:380px){
+  .score-pts{font-size:40px;}
+  .pp-val{font-size:16px;}
+  .race-name-txt{font-size:14px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-flag"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="logo-text">F1 <em>Tipp</em>spiel</div>
+  </div>
+  <div class="season-badge">2026</div>
+</header>
+
+<div class="sync-bar" id="sync-bar">
+  <div class="sync-dot off" id="sync-dot"></div>
+  <span id="sync-text">Verbinde...</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-tab="dashboard">Dashboard</div>
+  <div class="tab" data-tab="verlauf">Verlauf</div>
+  <div class="tab" data-tab="rennen">Rennen</div>
+  <div class="tab" data-tab="tabelle">Tabelle</div>
+  <div class="tab" data-tab="einstellungen">Setup</div>
+</div>
+
+<main>
+  <div class="section active" id="tab-dashboard">
+    <div id="next-race"></div>
+    <div id="hero"></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Letzte 5 Rennen</div></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="c-last5"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-verlauf">
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Kumulierter Punkteverlauf</div></div>
+      <div class="chart-wrap" style="height:260px"><canvas id="c-cum"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Punkte pro Rennen</div></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="c-per"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Differenz (S1 − S2)</div></div>
+      <div class="chart-wrap" style="height:180px"><canvas id="c-diff"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-rennen">
+    <div style="margin-bottom:16px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Punkte eingeben</div>
+      <div style="color:var(--muted);font-size:12px">Punkte pro Session eintragen (berechnet über Kicktipp). Grün = Ergebnisse vorhanden.</div>
+    </div>
+    <div id="legend"></div>
+    <div id="race-list"></div>
+  </div>
+
+  <div class="section" id="tab-tabelle">
+    <div class="chart-card" style="padding:0;overflow-x:auto">
+      <table class="score-table">
+        <thead><tr>
+          <th>Rennen</th><th>Typ</th>
+          <th id="th1">S1</th><th id="th2">S2</th><th>Sieger</th>
+        </tr></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="tab-einstellungen">
+    <div class="setup-wrap">
+      <div class="setup-card">
+        <div class="setup-title">Spielernamen</div>
+        <div class="field">
+          <label style="color:var(--red)">● Spieler 1</label>
+          <input type="text" id="n1in" placeholder="z.B. Emil">
+        </div>
+        <div class="field">
+          <label style="color:var(--blue)">● Spieler 2</label>
+          <input type="text" id="n2in" placeholder="z.B. Papa">
+        </div>
+        <button class="main-btn" onclick="saveNames()">Speichern</button>
+      </div>
+      <div class="setup-card">
+        <div class="setup-title">Backup</div>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:14px">Daten als JSON exportieren oder importieren (zusätzlich zum Live-Sync).</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="main-btn" onclick="exportData()" style="background:var(--s2);border:1px solid var(--border);">Export</button>
+          <button class="main-btn" onclick="importData()" style="background:var(--s2);border:1px solid var(--border);">Import</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+      </div>
+      <div class="setup-card">
+        <div class="setup-title">Daten zurücksetzen</div>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:14px">Alle Punkte werden gelöscht. Namen bleiben erhalten.</p>
+        <button class="danger-btn" onclick="resetData()">Alle Daten löschen</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const SPRINT_WE = new Set(['China','Miami','Kanada','Großbritannien','Niederlande','Singapur']);
+const RACE_DATES = {
+  'Australien':'06–08 Mär','China':'13–15 Mär','Japan':'27–29 Mär',
+  'Miami':'01–03 Mai','Kanada':'22–24 Mai','Monaco':'05–07 Jun',
+  'Barcelona':'12–14 Jun','Österreich':'26–28 Jun','Großbritannien':'03–05 Jul',
+  'Belgien':'17–19 Jul','Ungarn':'24–26 Jul','Niederlande':'21–23 Aug',
+  'Italien':'04–06 Sep','Madrid':'11–13 Sep','Aserbaidschan':'24–26 Sep',
+  'Singapur':'09–11 Okt','Austin':'23–25 Okt','Mexiko':'30 Okt–01 Nov',
+  'Brasilien':'13–15 Nov','Las Vegas':'19–21 Nov','Katar':'27–29 Nov',
+  'Abu Dhabi':'04–06 Dez'
+};
+const RACES = [
+  'Australien','China','Japan','Miami','Kanada','Monaco',
+  'Barcelona','Österreich','Großbritannien','Belgien','Ungarn',
+  'Niederlande','Italien','Madrid','Aserbaidschan','Singapur',
+  'Austin','Mexiko','Brasilien','Las Vegas','Katar','Abu Dhabi'
+];
+window.RACES_COUNT = RACES.length;
+
+const PTS_RACE = [8,7,6,5,4,3,2,1];
+const PTS_QS   = [4,3,2,1];
+const ZONE_PTS = 1;
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+function mkRace(name) {
+  const sprint = SPRINT_WE.has(name);
+  return {
+    name, sprint,
+    quali:   sprint ? null : { p1:0, p2:0 },
+    sprintS: sprint ? { p1:0, p2:0 } : null,
+    race:    { p1:0, p2:0 },
+    pts1: 0, pts2: 0, done: false
+  };
+}
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem('f1t26b'));
+    if (d && d.races && d.races.length === RACES.length) return d;
+  } catch(e) {}
+  return { name1:'Spieler 1', name2:'Spieler 2', races: RACES.map(mkRace) };
+}
+
+window.S = load();
+
+function persist() {
+  if (typeof window.firebaseSave === 'function') {
+    window.firebaseSave(window.S);
+  } else {
+    localStorage.setItem('f1t26b', JSON.stringify(window.S));
+  }
+}
+
+function recompute() {
+  S.races.forEach(r => {
+    r.pts1 = (r.race.p1||0) + (r.quali ? (r.quali.p1||0) : 0) + (r.sprintS ? (r.sprintS.p1||0) : 0);
+    r.pts2 = (r.race.p2||0) + (r.quali ? (r.quali.p2||0) : 0) + (r.sprintS ? (r.sprintS.p2||0) : 0);
+    r.done = r.pts1 > 0 || r.pts2 > 0;
+  });
+}
+
+function done() { return S.races.filter(r=>r.done); }
+function total(p) { return done().reduce((s,r)=>s+(p===1?r.pts1:r.pts2),0); }
+function cumul(p) { let s=0,a=[]; S.races.forEach(r=>{ if(r.done){s+=p===1?r.pts1:r.pts2;a.push(s);} }); return a; }
+
+// ══════════════════════════════════════════════════════
+// TOAST & SYNC
+// ══════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+window.updateSyncStatus = function(status, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot ' + status;
+  txt.textContent = text;
+};
+
+// ══════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ══════════════════════════════════════════════════════
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'f1-tippspiel-2026.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Export ✓');
+}
+function importData() { document.getElementById('import-file').click(); }
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data && data.races && data.races.length === RACES.length) {
+        window.S = data; persist(); renderAll();
+        showToast('Import ✓');
+      } else { showToast('Ungültige Datei'); }
+    } catch(err) { showToast('Fehler beim Import'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ══════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════
+const CH = {};
+const GC = '#1e1e1e';
+function bo() {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ color:'#888', font:{family:'Barlow',size:11}, boxWidth:12, padding:12 }}},
+    scales:{
+      x:{ ticks:{color:'#555',font:{size:10},maxRotation:45}, grid:{color:GC} },
+      y:{ ticks:{color:'#555',font:{size:10}}, grid:{color:GC} }
+    }
+  };
+}
+function dc(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+
+function drawCharts() {
+  const d = done(), lbs = d.map(r=>r.name);
+
+  dc('l5');
+  const l5 = d.slice(-5);
+  CH['l5'] = new Chart(document.getElementById('c-last5'),{type:'bar',data:{labels:l5.map(r=>r.name),datasets:[
+    {label:S.name1,data:l5.map(r=>r.pts1),backgroundColor:'rgba(232,0,29,0.72)',borderRadius:4},
+    {label:S.name2,data:l5.map(r=>r.pts2),backgroundColor:'rgba(30,144,255,0.72)',borderRadius:4}
+  ]},options:bo()});
+
+  dc('cum');
+  CH['cum'] = new Chart(document.getElementById('c-cum'),{type:'line',data:{labels:lbs,datasets:[
+    {label:S.name1,data:cumul(1),borderColor:'#e8001d',backgroundColor:'rgba(232,0,29,0.06)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#e8001d'},
+    {label:S.name2,data:cumul(2),borderColor:'#1e90ff',backgroundColor:'rgba(30,144,255,0.06)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#1e90ff'}
+  ]},options:bo()});
+
+  dc('per');
+  CH['per'] = new Chart(document.getElementById('c-per'),{type:'bar',data:{labels:lbs,datasets:[
+    {label:S.name1,data:d.map(r=>r.pts1),backgroundColor:'rgba(232,0,29,0.72)',borderRadius:3},
+    {label:S.name2,data:d.map(r=>r.pts2),backgroundColor:'rgba(30,144,255,0.72)',borderRadius:3}
+  ]},options:bo()});
+
+  dc('diff');
+  const diffs = d.map(r=>r.pts1-r.pts2);
+  CH['diff'] = new Chart(document.getElementById('c-diff'),{type:'bar',data:{labels:lbs,datasets:[{
+    label:`${S.name1} − ${S.name2}`,data:diffs,
+    backgroundColor:diffs.map(d=>d>=0?'rgba(232,0,29,0.72)':'rgba(30,144,255,0.72)'),borderRadius:3
+  }]},options:{...bo(),scales:{...bo().scales,y:{...bo().scales.y,ticks:{color:'#555',callback:v=>(v>0?'+':'')+v}}}}});
+}
+
+// ══════════════════════════════════════════════════════
+// NEXT RACE
+// ══════════════════════════════════════════════════════
+function renderNextRace() {
+  const nextIdx = S.races.findIndex(r => !r.done);
+  const el = document.getElementById('next-race');
+  if (nextIdx === -1) {
+    el.innerHTML = `<div class="next-race-card" style="border-color:var(--green);cursor:default">
+      <div class="next-race-label" style="color:var(--green)">Saison beendet</div>
+      <div class="next-race-name">Alle 22 Rennen ausgewertet!</div>
+    </div>`;
+    return;
+  }
+  const r = S.races[nextIdx];
+  el.innerHTML = `<div class="next-race-card" onclick="switchToRace(${nextIdx})">
+    <div class="next-race-label">Nächstes Rennen</div>
+    <div class="next-race-name">R${String(nextIdx+1).padStart(2,'0')} — ${r.name}</div>
+    <div class="next-race-info">${RACE_DATES[r.name]||''} ${r.sprint?'• Sprint':'• Normal'} — Tippe jetzt →</div>
+  </div>`;
+}
+
+function switchToRace(idx) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector('[data-tab="rennen"]').classList.add('active');
+  document.getElementById('tab-rennen').classList.add('active');
+  setTimeout(()=>{
+    const card = document.getElementById(`rc-${idx}`);
+    if(card){card.classList.add('open');card.scrollIntoView({behavior:'smooth',block:'center'});}
+  },100);
+}
+
+// ══════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════
+function renderDash() {
+  const t1=total(1),t2=total(2),gap=Math.abs(t1-t2);
+  const lead=t1>t2?1:t2>t1?2:0;
+  const d=done(),w1=d.filter(r=>r.pts1>r.pts2).length,w2=d.filter(r=>r.pts2>r.pts1).length;
+
+  const qp1=S.races.filter(r=>r.quali).reduce((s,r)=>s+(r.quali.p1||0),0);
+  const qp2=S.races.filter(r=>r.quali).reduce((s,r)=>s+(r.quali.p2||0),0);
+  const sp1=S.races.filter(r=>r.sprintS).reduce((s,r)=>s+(r.sprintS.p1||0),0);
+  const sp2=S.races.filter(r=>r.sprintS).reduce((s,r)=>s+(r.sprintS.p2||0),0);
+  const rp1=S.races.reduce((s,r)=>s+(r.race.p1||0),0);
+  const rp2=S.races.reduce((s,r)=>s+(r.race.p2||0),0);
+
+  const last5 = d.slice(-5);
+  const formHtml = last5.length ? `<div style="margin-top:12px;padding:12px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'Barlow Condensed',sans-serif;font-weight:600">Form ${S.name1}</span>
+    <div class="form-row">${last5.map(r=>{
+      const cls = r.pts1>r.pts2?'w':r.pts1<r.pts2?'l':'d';
+      return `<div class="form-dot ${cls}" title="${r.name}">${cls==='w'?'W':cls==='l'?'L':'='}</div>`;
+    }).join('')}</div>
+  </div>` : '';
+
+  document.getElementById('hero').innerHTML=`
+  <div class="score-hero">
+    <div class="score-side s1">
+      <div class="score-bg">1</div>
+      <div class="score-label">Spieler 1</div>
+      <div class="score-name">${S.name1}${lead===1?' <span class="lead-pill">Führt</span>':''}</div>
+      <div class="score-pts">${t1}</div>
+      <div class="score-chips">
+        <div class="chip">Quali <b>${qp1}</b></div>
+        <div class="chip">Sprint <b>${sp1}</b></div>
+        <div class="chip">Rennen <b>${rp1}</b></div>
+      </div>
+    </div>
+    <div class="vs-col">
+      <div class="vs-text">VS</div>
+      <div class="vs-gap">${gap>0?gap+' Pkt<br>Abstand':'Gleich&shy;stand'}</div>
+    </div>
+    <div class="score-side s2">
+      <div class="score-bg">2</div>
+      <div class="score-label">Spieler 2</div>
+      <div class="score-name">${S.name2}${lead===2?' <span class="lead-pill">Führt</span>':''}</div>
+      <div class="score-pts">${t2}</div>
+      <div class="score-chips">
+        <div class="chip">Quali <b>${qp2}</b></div>
+        <div class="chip">Sprint <b>${sp2}</b></div>
+        <div class="chip">Rennen <b>${rp2}</b></div>
+      </div>
+    </div>
+    ${formHtml}
+  </div>`;
+
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-val">${d.length}</div><div class="kpi-label">Gespielt</div></div>
+    <div class="kpi"><div class="kpi-val">${RACES.length-d.length}</div><div class="kpi-label">Ausstehend</div></div>
+    <div class="kpi"><div class="kpi-val">${w1}–${w2}</div><div class="kpi-label">Siege</div></div>
+    <div class="kpi"><div class="kpi-val">${gap}</div><div class="kpi-label">Differenz</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// RACE LIST
+// ══════════════════════════════════════════════════════
+function renderLegend() {
+  document.getElementById('legend').innerHTML=`
+  <div style="margin-bottom:14px">
+    <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'grid':'none'"
+      style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px 14px;user-select:none;-webkit-tap-highlight-color:transparent">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Punktesystem</span>
+      <span style="color:var(--muted);font-size:12px">▼</span>
+    </div>
+    <div style="display:none;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px" id="legend-inner">
+      <div class="legend-card">
+        <div class="legend-title"><span class="tag race-tag">Rennen</span> Top 8</div>
+        ${PTS_RACE.map((p,i)=>`<div class="leg-row"><span class="leg-pos">P${i+1}</span><span class="leg-pts">${p}</span></div>`).join('')}
+        <div class="leg-row"><span class="leg-pos">Zone</span><span class="leg-pts">${ZONE_PTS}</span></div>
+      </div>
+      <div class="legend-card">
+        <div class="legend-title"><span class="tag quali">Quali</span> Top 4</div>
+        ${PTS_QS.map((p,i)=>`<div class="leg-row"><span class="leg-pos">P${i+1}</span><span class="leg-pts">${p}</span></div>`).join('')}
+        <div class="leg-row"><span class="leg-pos">Zone</span><span class="leg-pts">${ZONE_PTS}</span></div>
+      </div>
+      <div class="legend-card">
+        <div class="legend-title"><span class="tag sprint">Sprint</span> Top 4</div>
+        ${PTS_QS.map((p,i)=>`<div class="leg-row"><span class="leg-pos">P${i+1}</span><span class="leg-pts">${p}</span></div>`).join('')}
+        <div class="leg-row"><span class="leg-pos">Zone</span><span class="leg-pts">${ZONE_PTS}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function sessRow(ri, key, label, tagClass, maxPts) {
+  const r = S.races[ri], sess = r[key];
+  if (!sess) return '';
+  return `
+  <div class="sess-block">
+    <div class="sess-label"><span class="tag ${tagClass}">${label}</span> <span style="color:var(--muted);font-size:10px">max ${maxPts} Pkt</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <div style="font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${S.name1}</div>
+        <input class="inp-s1" type="number" min="0" max="${maxPts}" placeholder="0"
+          inputmode="numeric" pattern="[0-9]*"
+          value="${sess.p1||''}"
+          data-r="${ri}" data-k="${key}" data-p="1"
+          oninput="onPts(this)">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${S.name2}</div>
+        <input class="inp-s2" type="number" min="0" max="${maxPts}" placeholder="0"
+          inputmode="numeric" pattern="[0-9]*"
+          value="${sess.p2||''}"
+          data-r="${ri}" data-k="${key}" data-p="2"
+          oninput="onPts(this)">
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderRaceList() {
+  const container = document.getElementById('race-list');
+  container.innerHTML = '';
+  const maxRace = PTS_RACE.reduce((a,b)=>a+b,0);
+  const maxQS   = PTS_QS.reduce((a,b)=>a+b,0);
+
+  S.races.forEach((r,i)=>{
+    const card = document.createElement('div');
+    card.className='race-card'+(r.done?' done':'');
+    card.id=`rc-${i}`;
+    const typeTags = r.sprint
+      ? `<span class="tag sprint">Sprint</span><span class="tag race-tag">Rennen</span>`
+      : `<span class="tag quali">Quali</span><span class="tag race-tag">Rennen</span>`;
+    const body = (r.sprint
+      ? sessRow(i,'sprintS','Sprint','sprint', maxQS)
+      : sessRow(i,'quali','Qualifying','quali', maxQS))
+      + sessRow(i,'race','Rennen','race-tag', maxRace);
+
+    card.innerHTML=`
+      <div class="race-header" onclick="toggleCard(${i})">
+        <div class="race-num">R${String(i+1).padStart(2,'0')}</div>
+        <div class="race-meta">
+          <div class="race-name-txt">${r.name}</div>
+          <div class="race-tags">${typeTags}<span style="font-size:9px;color:var(--muted);margin-left:4px">${RACE_DATES[r.name]||''}</span></div>
+        </div>
+        <div class="race-pts-prev">
+          <div class="pp-item"><div class="pp-val c1">${r.pts1}</div><div class="pp-label">${S.name1}</div></div>
+          <div class="pp-item"><div class="pp-val c2">${r.pts2}</div><div class="pp-label">${S.name2}</div></div>
+        </div>
+        <div class="race-chev">▼</div>
+      </div>
+      <div class="race-body" id="rb-${i}">
+        ${body}
+        <div class="save-row">
+          <button class="save-btn" id="sb-${i}" onclick="saveRace(${i})">Speichern</button>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function toggleCard(i){document.getElementById(`rc-${i}`).classList.toggle('open');}
+
+function onPts(el){
+  const {r,k,p}=el.dataset;
+  S.races[+r][k][p==='1'?'p1':'p2']=parseInt(el.value)||0;
+}
+
+function saveRace(i){
+  recompute(); persist(); renderAll();
+  document.getElementById(`rc-${i}`).classList.add('open');
+  showToast(`R${String(i+1).padStart(2,'0')} gespeichert ✓`);
+}
+
+// ══════════════════════════════════════════════════════
+// TABLE
+// ══════════════════════════════════════════════════════
+function renderTable(){
+  document.getElementById('th1').textContent=S.name1;
+  document.getElementById('th2').textContent=S.name2;
+  const d=done();
+  document.getElementById('tbl-body').innerHTML= !d.length
+    ? `<tr><td colspan="5" style="color:var(--muted);padding:20px;text-align:center">Noch keine Ergebnisse.</td></tr>`
+    : d.map(r=>{
+        const w = r.pts1>r.pts2?`<span class="winner-badge wb1">${S.name1}</span>`:r.pts2>r.pts1?`<span class="winner-badge wb2">${S.name2}</span>`:`<span class="winner-badge wbt">=</span>`;
+        return `<tr><td style="white-space:nowrap">${r.name}</td><td>${r.sprint?'<span class="tag sprint" style="font-size:9px">Sprint</span>':'<span class="tag quali" style="font-size:9px">Normal</span>'}</td><td class="td-pts c1">${r.pts1}</td><td class="td-pts c2">${r.pts2}</td><td>${w}</td></tr>`;
+      }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════
+function saveNames(){
+  const n1=document.getElementById('n1in').value.trim();
+  const n2=document.getElementById('n2in').value.trim();
+  if(n1) S.name1=n1; if(n2) S.name2=n2;
+  persist(); renderAll();
+  showToast('Namen gespeichert ✓');
+}
+function resetData(){
+  if(!confirm('Wirklich alle Daten löschen?')) return;
+  S.races=RACES.map(mkRace); persist(); renderAll();
+  showToast('Daten zurückgesetzt');
+}
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+document.getElementById('tabs').addEventListener('click', e=>{
+  const tab=e.target.closest('.tab'); if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+  if(['dashboard','verlauf'].includes(tab.dataset.tab)) setTimeout(drawCharts,80);
+});
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+window.renderAll = function(){
+  recompute();
+  renderNextRace();
+  renderDash();
+  renderLegend();
+  renderRaceList();
+  renderTable();
+  document.getElementById('n1in').value=S.name1;
+  document.getElementById('n2in').value=S.name2;
+  drawCharts();
+};
+
+renderAll();
+</script>
+</body>
+</html>
