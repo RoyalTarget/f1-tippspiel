@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html><body>
+<canvas id="c" width="512" height="512"></canvas>
+<script>
+function draw(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#080808';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, size, size, size * 0.15);
+  ctx.fill();
+
+  // Red bar
+  ctx.fillStyle = '#e8001d';
+  ctx.fillRect(0, size * 0.62, size, size * 0.08);
+
+  // F1 text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `900 ${size * 0.45}px 'Arial Black', sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('F1', size / 2, size * 0.42);
+
+  // TIPPS text
+  ctx.fillStyle = '#e8001d';
+  ctx.font = `700 ${size * 0.13}px 'Arial', sans-serif`;
+  ctx.letterSpacing = `${size * 0.02}px`;
+  ctx.fillText('TIPPS', size / 2, size * 0.78);
+
+  return c.toDataURL('image/png');
+}
+
+// Generate and offer download
+const a192 = document.createElement('a');
+a192.href = draw(192);
+a192.download = 'icon-192.png';
+a192.textContent = 'Download icon-192.png';
+document.body.appendChild(a192);
+
+const br = document.createElement('br');
+document.body.appendChild(br);
+
+const a512 = document.createElement('a');
+a512.href = draw(512);
+a512.download = 'icon-512.png';
+a512.textContent = 'Download icon-512.png';
+document.body.appendChild(a512);
+
+document.body.style.cssText = 'background:#111;color:#fff;font-family:sans-serif;padding:20px;';
+document.body.insertAdjacentHTML('afterbegin','<h3 style="margin-bottom:16px">PWA Icons generieren — Links anklicken zum Download, dann in den App-Ordner legen:</h3>');
+</script>
+</body></html>
