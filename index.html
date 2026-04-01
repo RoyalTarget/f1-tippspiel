@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e8001d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="F1 Tipps">
+<title>F1 Tippspiel 2026</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:#080808;--s1:#111;--s2:#181818;--s3:#202020;
+  --border:#2c2c2c;--border2:#383838;
+  --text:#efefef;--muted:#666;--muted2:#888;
+  --red:#e8001d;--red2:#ff1a33;--blue:#1e90ff;
+  --gold:#f5c518;--green:#00e676;--orange:#ff6b35;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden;}
+
+header{position:sticky;top:0;z-index:200;background:rgba(8,8,8,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-flag{display:flex;gap:2px;}
+.logo-flag span{display:block;width:5px;height:22px;border-radius:1px;}
+.logo-flag span:nth-child(odd){background:#fff;}.logo-flag span:nth-child(even){background:#111;}
+.logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:3px;text-transform:uppercase;}
+.logo-text em{color:var(--red);font-style:normal;}
+.season-badge{background:var(--red);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;padding:3px 10px;border-radius:3px;}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--s1);padding:0 28px;overflow-x:auto;position:sticky;top:58px;z-index:150;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:13px 18px;cursor:pointer;color:var(--muted);font-size:13px;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:'Barlow Condensed',sans-serif;font-weight:600;}
+.tab:hover{color:var(--muted2);}
+.tab.active{color:var(--red);border-bottom-color:var(--red);}
+
+main{padding:28px;max-width:1100px;margin:0 auto;}
+.section{display:none;}.section.active{display:block;}
+
+/* SCORE HERO */
+.score-hero{display:grid;grid-template-columns:1fr auto 1fr;background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.score-side{padding:28px 32px;position:relative;overflow:hidden;}
+.score-bg{position:absolute;right:-8px;top:-8px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:110px;opacity:0.05;line-height:1;pointer-events:none;}
+.score-label{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;}
+.score-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.score-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:68px;line-height:1;margin:4px 0;}
+.s1-side .score-pts{color:var(--red);}.s2-side .score-pts{color:var(--blue);}
+.score-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.chip{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:4px 9px;font-size:11px;color:var(--muted2);}
+.chip b{color:var(--text);}
+.vs-col{padding:20px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+.vs-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--muted);letter-spacing:2px;}
+.vs-gap{font-size:11px;color:var(--muted);text-align:center;line-height:1.6;}
+.lead-pill{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:1px;text-transform:uppercase;}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.kpi-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;color:var(--gold);}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+
+.chart-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px;}
+.chart-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.chart-stripe{width:3px;height:16px;background:var(--red);border-radius:2px;flex-shrink:0;}
+.chart-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:1px;text-transform:uppercase;}
+.chart-wrap{position:relative;}
+
+/* RACE CARDS */
+.race-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
+.race-card:hover{border-color:var(--border2);}
+.race-card.done{border-left:3px solid var(--green);}
+.race-header{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;user-select:none;}
+.race-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--red);width:34px;flex-shrink:0;}
+.race-meta{flex:1;min-width:0;}
+.race-name-txt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;}
+.race-tags{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;}
+.tag{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+.tag.sprint{background:rgba(245,197,24,0.12);color:var(--gold);border:1px solid rgba(245,197,24,0.2);}
+.tag.quali{background:rgba(30,144,255,0.1);color:var(--blue);border:1px solid rgba(30,144,255,0.18);}
+.tag.race-tag{background:rgba(232,0,29,0.1);color:var(--red);border:1px solid rgba(232,0,29,0.18);}
+.tag.bonus-tag{background:rgba(245,197,24,0.1);color:var(--gold);border:1px solid rgba(245,197,24,0.2);}
+.race-pts-prev{display:flex;gap:14px;flex-shrink:0;}
+.pp-item{text-align:right;}
+.pp-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;line-height:1;}
+.pp-val.c1{color:var(--red);}.pp-val.c2{color:var(--blue);}
+.pp-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;}
+.race-chev{color:var(--muted);transition:transform .2s;font-size:16px;flex-shrink:0;}
+.race-card.open .race-chev{transform:rotate(180deg);}
+.race-body{display:none;padding:0 18px 18px;}
+.race-card.open .race-body{display:block;}
+.legacy-notice{background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--muted2);font-size:12px;margin-top:12px;}
+.legacy-notice b{color:var(--text);}
+
+/* SESSION BLOCKS */
+.sess-block{margin-top:16px;}
+.sess-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.sess-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sess-label-txt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);}
+.lock-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--orange);background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);border-radius:4px;padding:2px 7px;font-weight:700;letter-spacing:0.5px;}
+.open-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.15);border-radius:4px;padding:2px 7px;font-weight:700;letter-spacing:0.5px;}
+.urgent-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--gold);background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.2);border-radius:4px;padding:2px 7px;font-weight:700;letter-spacing:0.5px;}
+
+.api-btn{background:var(--s3);border:1px solid var(--border2);border-radius:5px;color:var(--muted2);padding:4px 10px;cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:all .2s;}
+.api-btn:hover{background:var(--s2);color:var(--text);border-color:var(--gold);}
+.api-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.manual-lock-btn{background:var(--s3);border:1px solid rgba(255,107,53,0.3);border-radius:5px;color:var(--orange);padding:4px 10px;cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:all .2s;}
+.manual-lock-btn:hover{background:rgba(255,107,53,0.1);border-color:var(--orange);}
+
+/* TIPS TABLE */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border);}
+.pos-table{width:100%;border-collapse:collapse;min-width:420px;}
+.pos-table th{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 10px;text-align:center;border-bottom:1px solid var(--border);background:var(--s3);}
+.pos-table th:first-child{text-align:left;width:40px;}
+.pos-table th.th-s1{color:var(--red);}
+.pos-table th.th-s2{color:var(--blue);}
+.pos-table th.th-res{color:var(--gold);}
+.pos-table td{padding:5px 8px;text-align:center;border-bottom:1px solid rgba(44,44,44,0.4);}
+.pos-table tr:last-child td{border-bottom:none;}
+.pos-table tfoot td{border-top:1px solid var(--border);border-bottom:none;background:var(--s3);padding:7px 10px;}
+.td-pos{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--red);text-align:left;}
+.pts-cell{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;width:38px;}
+.pts-cell.c1{color:var(--red);}.pts-cell.c2{color:var(--blue);}
+.pts-total{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;}
+.pts-total.c1{color:var(--red);}.pts-total.c2{color:var(--blue);}
+.muted-dash{color:var(--muted);}
+.locked-tip{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;display:inline-block;}
+.locked-tip.empty{color:var(--muted);font-style:italic;}
+
+/* SELECTS */
+select{background:var(--s3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 6px;font-size:12px;font-family:'Barlow',sans-serif;width:100%;min-width:110px;max-width:160px;cursor:pointer;-webkit-appearance:none;appearance:none;}
+select:focus{outline:none;border-color:var(--red);}
+select:disabled{opacity:0.45;cursor:not-allowed;border-color:var(--border);}
+.sel-s1:not(:disabled):focus{border-color:var(--red);}
+.sel-s2:not(:disabled):focus{border-color:var(--blue);}
+.sel-res:focus{border-color:var(--gold);}
+
+.sess-totals{display:flex;gap:16px;align-items:center;background:var(--s3);border-radius:0 0 7px 7px;padding:10px 14px;}
+.sess-totals-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex:1;}
+.sess-tot-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;line-height:1;}
+.sess-tot-val.c1{color:var(--red);}.sess-tot-val.c2{color:var(--blue);}
+
+.save-row{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.save-btn{background:var(--red);color:#fff;border:none;border-radius:7px;padding:9px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
+.save-btn:hover{background:var(--red2);}
+.save-btn.ok{background:#1a5e3c;}
+
+/* LEGEND */
+.legend-row-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.legend-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.legend-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;color:var(--muted2);}
+.leg-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(44,44,44,0.4);font-size:12px;}
+.leg-row:last-child{border-bottom:none;}
+.leg-pos{color:var(--muted);}
+.leg-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--gold);}
+
+/* SCORE TABLE */
+.score-table{width:100%;border-collapse:collapse;font-size:13px;}
+.score-table th{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}
+.score-table td{padding:10px 16px;border-bottom:1px solid rgba(44,44,44,0.4);}
+.score-table tr:last-child td{border-bottom:none;}
+.score-table tr:hover td{background:var(--s2);}
+.score-table tfoot td{border-top:2px solid var(--border2);background:var(--s3);font-weight:600;}
+.td-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;}
+.td-pts.c1{color:var(--red);}.td-pts.c2{color:var(--blue);}
+.winner-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;}
+.wb1{background:rgba(232,0,29,0.14);color:var(--red);}
+.wb2{background:rgba(30,144,255,0.14);color:var(--blue);}
+.wbt{background:rgba(100,100,100,0.14);color:var(--muted2);}
+
+/* BONUS */
+.bonus-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;}
+.bonus-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.bonus-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.bonus-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;}
+.bonus-col-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;}
+.bonus-col-label.c1{color:var(--red);}.bonus-col-label.c2{color:var(--blue);}.bonus-col-label.cg{color:var(--gold);}
+.bonus-locked-row{display:flex;align-items:center;gap:10px;background:var(--s3);border-radius:8px;padding:10px 14px;margin-top:14px;}
+.bonus-locked-icon{font-size:18px;}
+.bonus-locked-text{font-size:12px;color:var(--muted2);line-height:1.5;}
+.bonus-pts-row{display:flex;gap:16px;margin-top:12px;}
+.bonus-pt-item{display:flex;flex-direction:column;gap:2px;}
+.bonus-pt-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;line-height:1;}
+.bonus-pt-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.lock-btn{background:var(--gold);color:#111;border:none;border-radius:7px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
+.lock-btn:hover{background:#d4a600;}
+.lock-btn:disabled{background:var(--s3);color:var(--muted);cursor:not-allowed;border:1px solid var(--border);}
+
+/* SETUP */
+.setup-wrap{max-width:440px;margin:0 auto;}
+.setup-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:26px;margin-bottom:16px;}
+.setup-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;color:var(--muted2);}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.field label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+input[type=text]{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 13px;font-size:15px;font-family:'Barlow',sans-serif;transition:border-color .2s;}
+input[type=text]:focus{outline:none;border-color:var(--red);}
+.main-btn{background:var(--red);color:#fff;border:none;border-radius:7px;padding:10px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
+.main-btn:hover{background:var(--red2);}
+.danger-btn{background:var(--s2);color:var(--muted2);border:1px solid var(--border);border-radius:7px;padding:10px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
+.danger-btn:hover{background:#2a1010;color:#ff7070;border-color:#4a1010;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;border:1px solid var(--border2);border-radius:10px;padding:12px 22px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.toast.err{border-color:var(--orange);color:var(--orange);}
+.toast.info{border-color:var(--blue);color:var(--blue);}
+
+/* INSTALL BUTTON */
+#install-btn{display:none;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);transition:all .2s;}
+#install-btn:hover{background:var(--s3);color:var(--text);}
+
+@media(max-width:680px){
+  header{padding:0 14px;}
+  .tabs{padding:0 10px;}
+  main{padding:14px;}
+  .score-hero{grid-template-columns:1fr;border-radius:10px;}
+  .vs-col{flex-direction:row;padding:12px 18px;border:none;border-top:1px solid var(--border);}
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .legend-row-wrap{grid-template-columns:1fr;}
+  .bonus-grid{grid-template-columns:1fr 1fr;gap:10px;}
+  .score-pts{font-size:52px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Player-Auswahlscreen -->
+<div id="player-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:#080808;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:24px;">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;letter-spacing:4px;text-transform:uppercase;color:#efefef;">F1 <span style="color:#e8001d">Tipp</span>spiel <span style="background:#e8001d;color:#fff;padding:2px 10px;border-radius:3px;font-size:22px;">2026</span></div>
+  <div style="font-size:14px;color:#666;letter-spacing:2px;text-transform:uppercase;">Wer bist du?</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+    <button onclick="setPlayer(1)" style="background:#e8001d;color:#fff;border:none;border-radius:10px;padding:20px 40px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      <div style="font-size:12px;font-weight:400;opacity:0.8;margin-bottom:4px;letter-spacing:1px">SPIELER 1</div>
+      <div id="ps-name1">André</div>
+    </button>
+    <button onclick="setPlayer(2)" style="background:#1e90ff;color:#fff;border:none;border-radius:10px;padding:20px 40px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      <div style="font-size:12px;font-weight:400;opacity:0.8;margin-bottom:4px;letter-spacing:1px">SPIELER 2</div>
+      <div id="ps-name2">Emil</div>
+    </button>
+  </div>
+  <div style="font-size:11px;color:#333;letter-spacing:1px;">Tipps des anderen bleiben bis zur Deadline verborgen.</div>
+  <div id="ps-loading" style="font-size:12px;color:#555;letter-spacing:1px;">⏳ Verbinde mit Firebase...</div>
+</div>
+
+<!-- Haupt-App -->
+<div id="app" style="display:none;">
+
+<header>
+  <div class="logo">
+    <div class="logo-flag"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="logo-text">F1 <em>Tipp</em>spiel</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button id="player-indicator" onclick="switchPlayer()" style="background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);transition:all .2s;" title="Spieler wechseln">👤 <span id="current-player-name">?</span></button>
+    <button id="install-btn">⬇ Installieren</button>
+    <div class="season-badge">2026</div>
+  </div>
+</header>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-tab="dashboard">Dashboard</div>
+  <div class="tab" data-tab="verlauf">Verlauf</div>
+  <div class="tab" data-tab="rennen">Rennen</div>
+  <div class="tab" data-tab="bonus">Bonus</div>
+  <div class="tab" data-tab="tabelle">Tabelle</div>
+  <div class="tab" data-tab="einstellungen">Einstellungen</div>
+</div>
+
+<main>
+  <div class="section active" id="tab-dashboard">
+    <div id="countdown-card" style="margin-bottom:16px;"></div>
+    <div id="hero"></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Letzte 5 Rennen</div></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="c-last5"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-verlauf">
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Kumulierter Punkteverlauf</div></div>
+      <div class="chart-wrap" style="height:280px"><canvas id="c-cum"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Punkte pro Rennen</div></div>
+      <div class="chart-wrap" style="height:240px"><canvas id="c-per"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Differenz (S1 − S2)</div></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="c-diff"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-rennen">
+    <div style="margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Rennen &amp; Tipps</div>
+      <div style="color:var(--muted);font-size:13px">Tipps vor Sessionbeginn auswählen. Ergebnisse per API oder manuell eintragen.</div>
+    </div>
+    <div id="legend"></div>
+    <div id="race-list"></div>
+  </div>
+
+  <div class="section" id="tab-bonus">
+    <div style="margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Bonuswetten</div>
+      <div style="color:var(--muted);font-size:13px">Einmalige Saisonwetten. Nach Eintragen des Ergebnisses permanent gesperrt.</div>
+    </div>
+    <div id="bonus-section"></div>
+  </div>
+
+  <div class="section" id="tab-tabelle">
+    <div class="chart-card" style="padding:0;overflow:hidden">
+      <table class="score-table">
+        <thead><tr>
+          <th>Rennen</th><th>Typ</th>
+          <th id="th1">S1</th><th id="th2">S2</th><th>Sieger</th>
+        </tr></thead>
+        <tbody id="tbl-body"></tbody>
+        <tfoot id="tbl-foot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="tab-einstellungen">
+    <div class="setup-wrap">
+      <div class="setup-card">
+        <div class="setup-title">Spielernamen</div>
+        <div class="field">
+          <label style="color:var(--red)">● Spieler 1</label>
+          <input type="text" id="n1in" placeholder="z.B. Emil">
+        </div>
+        <div class="field">
+          <label style="color:var(--blue)">● Spieler 2</label>
+          <input type="text" id="n2in" placeholder="z.B. Papa">
+        </div>
+        <button class="main-btn" onclick="saveNames()">Speichern</button>
+      </div>
+      <div class="setup-card">
+        <div class="setup-title">Daten zurücksetzen</div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Alle Punkte, Tipps &amp; Ergebnisse werden gelöscht. Namen bleiben erhalten. Bonuswetten werden zurückgesetzt.</p>
+        <button class="danger-btn" onclick="resetData()">Alle Daten löschen</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+</div><!-- /#app -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// KONFIGURATION
+// ══════════════════════════════════════════════════════
+// 2026 Grid – 22 Fahrer, 11 Teams
+const DRIVERS = [
+  'Alexander Albon','Arvid Lindblad','Carlos Sainz',
+  'Charles Leclerc','Esteban Ocon','Fernando Alonso',
+  'Franco Colapinto','Gabriel Bortoleto','George Russell',
+  'Isack Hadjar','Kimi Antonelli','Lance Stroll',
+  'Lando Norris','Lewis Hamilton','Liam Lawson',
+  'Max Verstappen','Nico Hülkenberg','Oliver Bearman',
+  'Oscar Piastri','Pierre Gasly','Sergio Pérez','Valtteri Bottas'
+];
+
+const TEAMS = [
+  'Alpine','Aston Martin','Audi','Cadillac',
+  'Ferrari','Haas','McLaren','Mercedes',
+  'Racing Bulls','Red Bull','Williams'
+];
+
+const PTS_RACE = [8,7,6,5,4,3,2,1];
+const PTS_QS   = [4,3,2,1];
+const ZONE_PTS = 1;
+const BONUS_PTS = 4;
+
+// Race config: n=name, r=round, sp=sprint weekend,
+// qt=qualifying time (UTC), st=sprint time (UTC), rt=race time (UTC)
+const RC = [
+  {n:'Australien',    r:1,  sp:false, qt:'2099-01-01T00:00:00Z', rt:'2099-01-01T00:00:00Z'},
+  {n:'China',         r:2,  sp:true,  st:'2099-01-01T00:00:00Z', rt:'2099-01-01T00:00:00Z'},
+  {n:'Japan',         r:3,  sp:false, qt:'2026-03-28T07:00:00Z', rt:'2026-03-29T05:00:00Z', retro:true},
+  {n:'Miami',         r:4,  sp:true,  st:'2026-05-02T17:00:00Z', rt:'2026-05-03T19:00:00Z'},
+  {n:'Kanada',        r:5,  sp:true,  st:'2026-05-23T17:00:00Z', rt:'2026-05-24T18:00:00Z'},
+  {n:'Monaco',        r:6,  sp:false, qt:'2026-06-06T14:00:00Z', rt:'2026-06-07T13:00:00Z'},
+  {n:'Barcelona',     r:7,  sp:false, qt:'2026-06-13T14:00:00Z', rt:'2026-06-14T13:00:00Z'},
+  {n:'Österreich',    r:8,  sp:false, qt:'2026-06-27T14:00:00Z', rt:'2026-06-28T13:00:00Z'},
+  {n:'Großbritannien',r:9,  sp:true,  st:'2026-07-04T11:30:00Z', rt:'2026-07-05T14:00:00Z'},
+  {n:'Belgien',       r:10, sp:false, qt:'2026-07-18T13:00:00Z', rt:'2026-07-19T13:00:00Z'},
+  {n:'Ungarn',        r:11, sp:false, qt:'2026-07-25T14:00:00Z', rt:'2026-07-26T13:00:00Z'},
+  {n:'Niederlande',   r:12, sp:true,  st:'2026-08-22T11:30:00Z', rt:'2026-08-23T13:00:00Z'},
+  {n:'Italien',       r:13, sp:false, qt:'2026-09-05T14:00:00Z', rt:'2026-09-06T13:00:00Z'},
+  {n:'Madrid',        r:14, sp:false, qt:'2026-09-12T14:00:00Z', rt:'2026-09-13T13:00:00Z'},
+  {n:'Aserbaidschan', r:15, sp:false, qt:'2026-09-25T12:00:00Z', rt:'2026-09-26T11:00:00Z'},
+  {n:'Singapur',      r:16, sp:true,  st:'2026-10-10T09:30:00Z', rt:'2026-10-11T12:00:00Z'},
+  {n:'Austin',        r:17, sp:false, qt:'2026-10-24T21:00:00Z', rt:'2026-10-25T19:00:00Z'},
+  {n:'Mexiko',        r:18, sp:false, qt:'2026-10-31T22:00:00Z', rt:'2026-11-01T20:00:00Z'},
+  {n:'Brasilien',     r:19, sp:false, qt:'2026-11-14T18:00:00Z', rt:'2026-11-15T17:00:00Z'},
+  {n:'Las Vegas',     r:20, sp:false, qt:'2026-11-20T06:00:00Z', rt:'2026-11-21T06:00:00Z'},
+  {n:'Katar',         r:21, sp:false, qt:'2026-11-28T15:00:00Z', rt:'2026-11-29T13:00:00Z'},
+  {n:'Abu Dhabi',     r:22, sp:false, qt:'2026-12-05T13:00:00Z', rt:'2026-12-06T13:00:00Z'},
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+function mkRace(cfg) {
+  return {
+    name: cfg.n, sprint: cfg.sp,
+    qualiTips1: [null,null,null,null],
+    qualiTips2: [null,null,null,null],
+    qualiResult: [null,null,null,null],
+    sprintTips1: cfg.sp ? [null,null,null,null] : null,
+    sprintTips2: cfg.sp ? [null,null,null,null] : null,
+    sprintResult: cfg.sp ? [null,null,null,null] : null,
+    raceTips1: Array(8).fill(null),
+    raceTips2: Array(8).fill(null),
+    raceResult: Array(8).fill(null),
+    pts1:0, pts2:0, done:false, legacy:false,
+    qualiLocked:false, sprintLocked:false, raceLocked:false
+  };
+}
+
+function mkBonus() {
+  return {
+    wdc: {tip1:'', tip2:'', actual:'', locked:false},
+    wcc: {tip1:'', tip2:'', actual:'', locked:false}
+  };
+}
+
+function mkInitialState() {
+  return {
+    name1:'Spieler 1', name2:'Spieler 2',
+    bonus: mkBonus(),
+    bonusPts1:0, bonusPts2:0,
+    races: RC.map(mkRace)
+  };
+}
+
+let S = mkInitialState();
+let currentPlayer = parseInt(localStorage.getItem('f1_player') || '0');
+
+// ══════════════════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDr-NjPYrUbIu0phN4BONdvYluNL9EvURA",
+  authDomain: "f1-tippspiel-98cff.firebaseapp.com",
+  databaseURL: "https://f1-tippspiel-98cff-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "f1-tippspiel-98cff",
+  storageBucket: "f1-tippspiel-98cff.firebasestorage.app",
+  messagingSenderId: "691036555251",
+  appId: "1:691036555251:web:281e68cb81ce782156b486"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ROOT = 'f1t26';
+
+// ── Hilfsfunktionen ──
+function dbRef(path) { return db.ref(`${ROOT}/${path}`); }
+
+// Tiefer Merge: Firebase-Objekt in lokale Struktur einlesen
+function mergeFirebase(fbData) {
+  if (!fbData) return;
+
+  // Namen
+  if (fbData.name1) S.name1 = fbData.name1;
+  if (fbData.name2) S.name2 = fbData.name2;
+
+  // Bonus
+  if (fbData.bonus) {
+    ['wdc','wcc'].forEach(k => {
+      if (fbData.bonus[k]) Object.assign(S.bonus[k], fbData.bonus[k]);
+    });
+  }
+
+  // Rennen
+  if (fbData.races) {
+    fbData.races.forEach((fr, i) => {
+      if (!fr || !S.races[i]) return;
+      const r = S.races[i];
+      // Ergebnisse (geteilt, für beide sichtbar)
+      if (fr.qualiResult)  r.qualiResult  = fr.qualiResult;
+      if (fr.sprintResult) r.sprintResult = fr.sprintResult;
+      if (fr.raceResult)   r.raceResult   = fr.raceResult;
+      if (fr.qualiLocked  !== undefined) r.qualiLocked  = fr.qualiLocked;
+      if (fr.sprintLocked !== undefined) r.sprintLocked = fr.sprintLocked;
+      if (fr.raceLocked   !== undefined) r.raceLocked   = fr.raceLocked;
+      if (fr.pts1 !== undefined) r.pts1 = fr.pts1;
+      if (fr.pts2 !== undefined) r.pts2 = fr.pts2;
+      if (fr.done !== undefined) r.done = fr.done;
+      if (fr.legacy !== undefined) r.legacy = fr.legacy;
+      // Tipps Spieler 1
+      if (fr.qualiTips1)  r.qualiTips1  = fr.qualiTips1;
+      if (fr.sprintTips1) r.sprintTips1 = fr.sprintTips1;
+      if (fr.raceTips1)   r.raceTips1   = fr.raceTips1;
+      // Tipps Spieler 2
+      if (fr.qualiTips2)  r.qualiTips2  = fr.qualiTips2;
+      if (fr.sprintTips2) r.sprintTips2 = fr.sprintTips2;
+      if (fr.raceTips2)   r.raceTips2   = fr.raceTips2;
+    });
+  }
+}
+
+// persist: schreibt nur den Anteil des aktuellen Spielers + geteilte Daten
+function persist() {
+  // Geteilte Daten (Ergebnisse, Locks, Namen, Bonus)
+  dbRef('name1').set(S.name1);
+  dbRef('name2').set(S.name2);
+  dbRef('bonus').set(S.bonus);
+  dbRef('bonusPts1').set(S.bonusPts1);
+  dbRef('bonusPts2').set(S.bonusPts2);
+
+  S.races.forEach((r, i) => {
+    const base = dbRef(`races/${i}`);
+    // Geteilte Felder
+    base.update({
+      qualiResult:  r.qualiResult  || null,
+      sprintResult: r.sprintResult || null,
+      raceResult:   r.raceResult   || null,
+      qualiLocked:  r.qualiLocked,
+      sprintLocked: r.sprintLocked,
+      raceLocked:   r.raceLocked,
+      pts1: r.pts1, pts2: r.pts2,
+      done: r.done, legacy: r.legacy
+    });
+    // Tipps je nach Spieler
+    if (currentPlayer === 1) {
+      base.update({
+        qualiTips1:  r.qualiTips1  || null,
+        sprintTips1: r.sprintTips1 || null,
+        raceTips1:   r.raceTips1   || null,
+      });
+    } else if (currentPlayer === 2) {
+      base.update({
+        qualiTips2:  r.qualiTips2  || null,
+        sprintTips2: r.sprintTips2 || null,
+        raceTips2:   r.raceTips2   || null,
+      });
+    }
+  });
+
+  // Fallback: auch lokal speichern
+  localStorage.setItem('f1t26c', JSON.stringify(S));
+}
+
+// ── Realtime-Listener: Änderungen anderer Spieler live übernehmen ──
+let fbLoaded = false;
+dbRef('').on('value', snap => {
+  const fbData = snap.val();
+  if (fbData) {
+    mergeFirebase(fbData);
+  } else {
+    // Datenbank leer → ggf. localStorage migrieren
+    migrateFromLocalStorage();
+  }
+  recompute();
+  if (fbLoaded) {
+    // Live-Update: nur rendern wenn App sichtbar
+    if (currentPlayer > 0) renderAll();
+  } else {
+    fbLoaded = true;
+    startApp();
+  }
+});
+
+function migrateFromLocalStorage() {
+  // Versuche alte localStorage-Daten zu retten
+  try {
+    const old = JSON.parse(localStorage.getItem('f1t26c'));
+    if (old && old.races && old.races.length === RC.length) {
+      S.name1 = old.name1 || S.name1;
+      S.name2 = old.name2 || S.name2;
+      if (old.bonus) S.bonus = old.bonus;
+      old.races.forEach((or, i) => {
+        if (!or || !S.races[i]) return;
+        Object.assign(S.races[i], or);
+      });
+      // In Firebase schreiben
+      currentPlayer = 1; // Migration als P1
+      persist();
+      showToast('Lokale Daten in Firebase migriert ✓', 'ok');
+      return;
+    }
+    // Altes Format f1t26b
+    const ob = JSON.parse(localStorage.getItem('f1t26b'));
+    if (ob && ob.races) {
+      S.name1 = ob.name1 || S.name1;
+      S.name2 = ob.name2 || S.name2;
+      ob.races.forEach((or, i) => {
+        if (i < S.races.length && or && (or.pts1||0)+(or.pts2||0) > 0) {
+          S.races[i].pts1 = or.pts1 || 0;
+          S.races[i].pts2 = or.pts2 || 0;
+          S.races[i].legacy = true;
+          S.races[i].done = true;
+        }
+      });
+      currentPlayer = 1;
+      persist();
+      showToast('Alte Daten migriert ✓', 'ok');
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════
+// USER SYSTEM
+// ══════════════════════════════════════════════════════
+function setPlayer(p) {
+  currentPlayer = p;
+  localStorage.setItem('f1_player', String(p));
+  document.getElementById('player-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderAll();
+}
+
+function switchPlayer() {
+  localStorage.removeItem('f1_player');
+  currentPlayer = 0;
+  document.getElementById('player-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function startApp() {
+  // Namen im Player-Screen setzen
+  const ps1 = document.getElementById('ps-name1');
+  const ps2 = document.getElementById('ps-name2');
+  if (ps1) ps1.textContent = S.name1;
+  if (ps2) ps2.textContent = S.name2;
+
+  if (currentPlayer === 0) {
+    document.getElementById('player-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  } else {
+    document.getElementById('player-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    renderAll();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SCORING
+// ══════════════════════════════════════════════════════
+function calcScore(tips, result, ptTable) {
+  if (!tips || !result) return 0;
+  let pts = 0;
+  const valid = result.filter(Boolean);
+  tips.forEach((tip, i) => {
+    if (!tip) return;
+    if (tip === result[i]) pts += ptTable[i];
+    else if (valid.includes(tip)) pts += ZONE_PTS;
+  });
+  return pts;
+}
+
+function ptsPerPos(tips, result, ptTable) {
+  if (!result) return [];
+  const valid = result.filter(Boolean);
+  return (tips || []).map((tip, i) => {
+    if (!tip || !result[i]) return null;
+    if (tip === result[i]) return ptTable[i];
+    if (valid.includes(tip)) return ZONE_PTS;
+    return 0;
+  });
+}
+
+function recompute() {
+  // Bonus
+  let bp1 = 0, bp2 = 0;
+  const bw = S.bonus.wdc, bc = S.bonus.wcc;
+  if (bw.locked && bw.actual) {
+    if (bw.tip1 === bw.actual) bp1 += BONUS_PTS;
+    if (bw.tip2 === bw.actual) bp2 += BONUS_PTS;
+  }
+  if (bc.locked && bc.actual) {
+    if (bc.tip1 === bc.actual) bp1 += BONUS_PTS;
+    if (bc.tip2 === bc.actual) bp2 += BONUS_PTS;
+  }
+  S.bonusPts1 = bp1;
+  S.bonusPts2 = bp2;
+
+  // Rennen
+  S.races.forEach((r, i) => {
+    if (r.legacy) { r.done = true; return; }
+    const cfg = RC[i];
+    let p1 = 0, p2 = 0;
+    if (cfg.sp) {
+      p1 += calcScore(r.sprintTips1, r.sprintResult, PTS_QS);
+      p2 += calcScore(r.sprintTips2, r.sprintResult, PTS_QS);
+    } else {
+      p1 += calcScore(r.qualiTips1, r.qualiResult, PTS_QS);
+      p2 += calcScore(r.qualiTips2, r.qualiResult, PTS_QS);
+    }
+    p1 += calcScore(r.raceTips1, r.raceResult, PTS_RACE);
+    p2 += calcScore(r.raceTips2, r.raceResult, PTS_RACE);
+    r.pts1 = p1; r.pts2 = p2;
+    r.done = (r.raceResult || []).some(Boolean) ||
+             (cfg.sp ? (r.sprintResult || []) : (r.qualiResult || [])).some(Boolean);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// TOTALS & STATS
+// ══════════════════════════════════════════════════════
+function total(p) {
+  const rpts = S.races.filter(r=>r.done).reduce((s,r)=>s+(p===1?r.pts1:r.pts2),0);
+  return rpts + (p===1 ? S.bonusPts1 : S.bonusPts2);
+}
+function cumul(p) {
+  let s=0, a=[];
+  S.races.forEach(r=>{ if(r.done){ s+=p===1?r.pts1:r.pts2; a.push(s); } });
+  return a;
+}
+function done() { return S.races.filter(r=>r.done); }
+
+// ══════════════════════════════════════════════════════
+// TIME HELPERS
+// ══════════════════════════════════════════════════════
+function isLocked(timeStr) {
+  return timeStr && Date.now() >= new Date(timeStr).getTime();
+}
+
+function lockBadge(timeStr) {
+  if (!timeStr) return '';
+  const t = new Date(timeStr), now = Date.now(), diff = t - now;
+  if (diff <= 0) {
+    return `<span class="lock-badge">🔒 ${t.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>`;
+  }
+  const mins = Math.floor(diff/60000);
+  const hours = Math.floor(mins/60);
+  const days = Math.floor(hours/24);
+  if (days > 0) return `<span class="open-badge">✏️ Noch ${days}T ${hours%24}h</span>`;
+  if (hours > 0) return `<span class="open-badge">✏️ Noch ${hours}h ${mins%60}min</span>`;
+  return `<span class="urgent-badge">⏱️ Noch ${mins}min!</span>`;
+}
+
+// ══════════════════════════════════════════════════════
+// DRIVER SELECT BUILDER
+// ══════════════════════════════════════════════════════
+function driverSel(val, cls, disabled, dataAttrs, list) {
+  const d = disabled ? 'disabled' : '';
+  const da = Object.entries(dataAttrs).map(([k,v])=>`data-${k}="${v}"`).join(' ');
+  const opts = list || DRIVERS;
+  const options = ['<option value="">— Fahrer —</option>',
+    ...opts.map(n=>`<option value="${n}"${val===n?' selected':''}>${n}</option>`)
+  ].join('');
+  return `<select class="drv-sel ${cls}" ${d} ${da}>${options}</select>`;
+}
+
+function teamSel(val, cls, disabled, dataAttrs) {
+  const d = disabled ? 'disabled' : '';
+  const da = Object.entries(dataAttrs).map(([k,v])=>`data-${k}="${v}"`).join(' ');
+  const options = ['<option value="">— Team —</option>',
+    ...TEAMS.map(n=>`<option value="${n}"${val===n?' selected':''}>${n}</option>`)
+  ].join('');
+  return `<select class="drv-sel ${cls}" ${d} ${da}>${options}</select>`;
+}
+
+// ══════════════════════════════════════════════════════
+// SESSION BLOCK RENDERER
+// ══════════════════════════════════════════════════════
+function sessBlock(ri, sessType) {
+  const r = S.races[ri];
+  const cfg = RC[ri];
+
+  let tips1, tips2, result, timeStr, label, tagClass, ptTable;
+  if (sessType === 'sprint') {
+    tips1 = r.sprintTips1; tips2 = r.sprintTips2; result = r.sprintResult;
+    timeStr = cfg.st; label = 'Sprint'; tagClass = 'sprint'; ptTable = PTS_QS;
+  } else if (sessType === 'quali') {
+    tips1 = r.qualiTips1; tips2 = r.qualiTips2; result = r.qualiResult;
+    timeStr = cfg.qt; label = 'Qualifying'; tagClass = 'quali'; ptTable = PTS_QS;
+  } else {
+    tips1 = r.raceTips1; tips2 = r.raceTips2; result = r.raceResult;
+    timeStr = cfg.rt; label = 'Rennen'; tagClass = 'race-tag'; ptTable = PTS_RACE;
+  }
+
+  const manualLockKey = sessType === 'race' ? 'raceLocked' : sessType === 'sprint' ? 'sprintLocked' : 'qualiLocked';
+  const timeLocked = isLocked(timeStr);
+  const locked = r[manualLockKey] || timeLocked;
+  const isRetro = !!cfg.retro;
+
+  const n = ptTable.length;
+  const pp1 = ptsPerPos(tips1, result, ptTable);
+  const pp2 = ptsPerPos(tips2, result, ptTable);
+  const tot1 = pp1.reduce((s,v)=>s+(v||0),0);
+  const tot2 = pp2.reduce((s,v)=>s+(v||0),0);
+
+  const rows = Array.from({length:n},(_,i)=>{
+    const t1 = tips1?.[i] || '';
+    const t2 = tips2?.[i] || '';
+    const res = result?.[i] || '';
+
+    const myIsP1 = currentPlayer === 1;
+    const myTip  = myIsP1 ? t1 : t2;
+    const oTip   = myIsP1 ? t2 : t1;
+
+    // Eigener Tipp: editierbar bis Deadline
+    let myCell;
+    if (locked) {
+      myCell = `<span class="locked-tip${!myTip?' empty':''}">${myTip||'—'}</span>`;
+    } else {
+      const da = myIsP1 ? {ri,sess:sessType,pl:1,pos:i} : {ri,sess:sessType,pl:2,pos:i};
+      myCell = driverSel(myTip, myIsP1?'sel-s1':'sel-s2', false, da);
+    }
+
+    // Fremder Tipp: verborgen bis Deadline
+    let oCell;
+    if (locked) {
+      oCell = `<span class="locked-tip${!oTip?' empty':''}">${oTip||'—'}</span>`;
+    } else {
+      oCell = `<span style="color:var(--border2);letter-spacing:2px;font-size:13px;">●●●</span>`;
+    }
+
+    const t1Cell = myIsP1 ? myCell : oCell;
+    const t2Cell = myIsP1 ? oCell  : myCell;
+
+    // Ergebnis immer editierbar (auch retro)
+    const resCell = driverSel(res,'sel-res',false,{ri,sess:sessType,pos:i});
+
+    const p1v = pp1[i]; const p2v = pp2[i];
+    const p1c = p1v===null?`<span class="muted-dash">—</span>`:p1v===ptTable[i]?`<b>${p1v}</b>`:p1v;
+    const p2c = p2v===null?`<span class="muted-dash">—</span>`:p2v===ptTable[i]?`<b>${p2v}</b>`:p2v;
+
+    return `<tr>
+      <td class="td-pos">P${i+1}</td>
+      <td>${t1Cell}</td>
+      <td>${t2Cell}</td>
+      <td>${resCell}</td>
+      <td class="pts-cell c1">${p1c}</td>
+      <td class="pts-cell c2">${p2c}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="sess-block">
+    <div class="sess-header">
+      <div class="sess-left">
+        <span class="sess-label-txt"><span class="tag ${tagClass}">${label}</span></span>
+        <span data-locktime="${timeStr}">${lockBadge(timeStr)}</span>
+        ${isRetro?`<span class="open-badge" style="background:rgba(245,197,24,0.08);color:var(--gold);border-color:rgba(245,197,24,0.25)">🔓 Nachtrags-Modus</span>`:''}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        ${!locked?`<button class="manual-lock-btn" onclick="manualLockSess(${ri},'${sessType}')">🔒 Sperren</button>`:''}
+        <button class="api-btn" onclick="loadAPI(${ri},'${sessType}')" title="Ergebnisse von Jolpica F1 API laden">⟳ API laden</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="pos-table">
+        <thead><tr>
+          <th></th>
+          <th class="th-s1">${S.name1}</th>
+          <th class="th-s2">${S.name2}</th>
+          <th class="th-res">Ergebnis</th>
+          <th class="c1">S1</th>
+          <th class="c2">S2</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td colspan="4" style="text-align:right;font-size:11px;color:var(--muted)">Gesamt Session</td>
+          <td class="pts-total c1">${tot1}</td>
+          <td class="pts-total c2">${tot2}</td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// RACE LIST
+// ══════════════════════════════════════════════════════
+function renderLegend() {
+  document.getElementById('legend').innerHTML=`
+  <div style="margin-bottom:16px">
+    <div onclick="toggleLegend()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:13px 16px;user-select:none;">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">📋 Punktesystem</span>
+      <span id="leg-chev" style="color:var(--muted);font-size:13px">▼</span>
+    </div>
+    <div id="legend-inner" style="display:none;margin-top:10px">
+      <div class="legend-row-wrap">
+        <div class="legend-card">
+          <div class="legend-title"><span class="tag race-tag">Rennen</span> Top 8</div>
+          ${PTS_RACE.map((p,i)=>`<div class="leg-row"><span class="leg-pos">P${i+1}</span><span class="leg-pts">${p} Pkt</span></div>`).join('')}
+          <div class="leg-row"><span class="leg-pos">Im Bereich</span><span class="leg-pts">${ZONE_PTS} Pkt</span></div>
+        </div>
+        <div class="legend-card">
+          <div class="legend-title"><span class="tag quali">Qualifying</span> Top 4</div>
+          ${PTS_QS.map((p,i)=>`<div class="leg-row"><span class="leg-pos">P${i+1}</span><span class="leg-pts">${p} Pkt</span></div>`).join('')}
+          <div class="leg-row"><span class="leg-pos">Im Bereich</span><span class="leg-pts">${ZONE_PTS} Pkt</span></div>
+        </div>
+        <div class="legend-card">
+          <div class="legend-title"><span class="tag sprint">Sprint</span> Top 4</div>
+          ${PTS_QS.map((p,i)=>`<div class="leg-row"><span class="leg-pos">P${i+1}</span><span class="leg-pts">${p} Pkt</span></div>`).join('')}
+          <div class="leg-row"><span class="leg-pos">Im Bereich</span><span class="leg-pts">${ZONE_PTS} Pkt</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleLegend() {
+  const el = document.getElementById('legend-inner');
+  const ch = document.getElementById('leg-chev');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  ch.textContent = open ? '▼' : '▲';
+}
+
+function renderRaceList() {
+  const container = document.getElementById('race-list');
+  // Merke offene Karten
+  const openCards = new Set();
+  container.querySelectorAll('.race-card.open').forEach(c=>openCards.add(c.id));
+
+  container.innerHTML = '';
+  S.races.forEach((r,i)=>{
+    const cfg = RC[i];
+    const card = document.createElement('div');
+    card.className='race-card'+(r.done?' done':'')+(openCards.has(`rc-${i}`)?' open':'');
+    card.id=`rc-${i}`;
+
+    const typeTags = r.sprint
+      ? `<span class="tag sprint">Sprint WE</span><span class="tag race-tag">Rennen</span>`
+      : `<span class="tag quali">Qualifying</span><span class="tag race-tag">Rennen</span>`;
+
+    let bodyHtml = '';
+    if (r.legacy) {
+      bodyHtml = `<div class="legacy-notice">
+        <b>Importierte Daten</b> — Diese Ergebnisse wurden aus dem alten System übernommen.
+        Tipps und Einzelergebnisse sind nicht verfügbar.
+      </div>`;
+    } else {
+      bodyHtml = (r.sprint ? sessBlock(i,'sprint') : sessBlock(i,'quali'))
+               + sessBlock(i,'race');
+    }
+
+    card.innerHTML=`
+      <div class="race-header" onclick="toggleCard(${i})">
+        <div class="race-num">R${String(i+1).padStart(2,'0')}</div>
+        <div class="race-meta">
+          <div class="race-name-txt">${r.name}</div>
+          <div class="race-tags">${typeTags}</div>
+        </div>
+        <div class="race-pts-prev">
+          <div class="pp-item"><div class="pp-val c1">${r.pts1}</div><div class="pp-label">${S.name1}</div></div>
+          <div class="pp-item"><div class="pp-val c2">${r.pts2}</div><div class="pp-label">${S.name2}</div></div>
+        </div>
+        <div class="race-chev">▼</div>
+      </div>
+      <div class="race-body">${bodyHtml}</div>`;
+    container.appendChild(card);
+  });
+}
+
+function toggleCard(i) { document.getElementById(`rc-${i}`).classList.toggle('open'); }
+
+// ══════════════════════════════════════════════════════
+// MANUELLES SPERREN
+// ══════════════════════════════════════════════════════
+function manualLockSess(ri, sessType) {
+  const label = sessType === 'race' ? 'Rennen' : sessType === 'sprint' ? 'Sprint' : 'Qualifying';
+  if (!confirm(`Tipps für ${RC[ri].n} – ${label} jetzt manuell sperren?\nDanach sind keine Änderungen mehr möglich.`)) return;
+  const key = sessType === 'race' ? 'raceLocked' : sessType === 'sprint' ? 'sprintLocked' : 'qualiLocked';
+  S.races[ri][key] = true;
+  persist();
+  renderRaceList();
+  document.getElementById(`rc-${ri}`)?.classList.add('open');
+  showToast(`🔒 ${RC[ri].n} ${label} gesperrt`, 'ok');
+}
+
+// ══════════════════════════════════════════════════════
+// BONUS SECTION
+// ══════════════════════════════════════════════════════
+function renderBonus() {
+  const bw = S.bonus.wdc, bc = S.bonus.wcc;
+  const bp1 = S.bonusPts1, bp2 = S.bonusPts2;
+
+  function bonusCard(key, title, sub, tip1, tip2, actual, locked, useTeams) {
+    const lockedHtml = locked ? `
+      <div class="bonus-locked-row">
+        <span class="bonus-locked-icon">🔒</span>
+        <span class="bonus-locked-text">Gesperrt — Ergebnis: <b>${actual||'—'}</b></span>
+      </div>` : '';
+
+    const selFn = useTeams
+      ? (v,c,d,da) => teamSel(v,c,d,da)
+      : (v,c,d,da) => driverSel(v,c,d,da);
+
+    const t1Sel = locked
+      ? `<span class="locked-tip${!tip1?' empty':''}">${tip1||'—'}</span>`
+      : selFn(tip1,'sel-s1',false,{bkey:key,bfield:'tip1'});
+    const t2Sel = locked
+      ? `<span class="locked-tip${!tip2?' empty':''}">${tip2||'—'}</span>`
+      : selFn(tip2,'sel-s2',false,{bkey:key,bfield:'tip2'});
+    const actSel = locked
+      ? `<span class="locked-tip${!actual?' empty':''}">${actual||'—'}</span>`
+      : selFn(actual,'sel-res',false,{bkey:key,bfield:'actual'});
+
+    // Punkte anzeigen wenn gesperrt
+    let ptsHtml = '';
+    if (locked && actual) {
+      const p1 = tip1===actual?BONUS_PTS:0, p2 = tip2===actual?BONUS_PTS:0;
+      ptsHtml = `<div class="bonus-pts-row">
+        <div class="bonus-pt-item"><div class="bonus-pt-val c1" style="color:var(--red)">${p1}</div><div class="bonus-pt-label">${S.name1}</div></div>
+        <div class="bonus-pt-item"><div class="bonus-pt-val c2" style="color:var(--blue)">${p2}</div><div class="bonus-pt-label">${S.name2}</div></div>
+        <div class="bonus-pt-item"><div class="bonus-pt-val" style="color:var(--gold)">${BONUS_PTS}</div><div class="bonus-pt-label">Max Punkte</div></div>
+      </div>`;
+    }
+
+    return `<div class="bonus-card">
+      <div class="bonus-title">${title}</div>
+      <div class="bonus-sub">${sub}</div>
+      <div class="bonus-grid">
+        <div>
+          <div class="bonus-col-label c1">Tipp ${S.name1}</div>
+          ${t1Sel}
+        </div>
+        <div>
+          <div class="bonus-col-label c2">Tipp ${S.name2}</div>
+          ${t2Sel}
+        </div>
+        <div>
+          <div class="bonus-col-label cg">Ergebnis</div>
+          ${actSel}
+        </div>
+      </div>
+      ${ptsHtml}
+      ${!locked ? `<button class="lock-btn" onclick="lockBonus('${key}')" ${!actual?'disabled':''}>🔒 Ergebnis sperren</button>` : ''}
+      ${lockedHtml}
+    </div>`;
+  }
+
+  document.getElementById('bonus-section').innerHTML =
+    bonusCard('wdc','Fahrerweltmeister','Richtige Antwort = 4 Punkte. Einmal gesperrt, nie mehr änderbar.',
+      bw.tip1, bw.tip2, bw.actual, bw.locked, false) +
+    bonusCard('wcc','Konstrukteursweltmeister','Richtige Antwort = 4 Punkte. Einmal gesperrt, nie mehr änderbar.',
+      bc.tip1, bc.tip2, bc.actual, bc.locked, true) +
+    `<div style="background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;gap:24px;align-items:center;">
+      <div style="flex:1;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Bonus Punkte Gesamt</div>
+      <div style="display:flex;gap:20px;">
+        <div class="pp-item"><div class="pp-val c1">${bp1}</div><div class="pp-label">${S.name1}</div></div>
+        <div class="pp-item"><div class="pp-val c2">${bp2}</div><div class="pp-label">${S.name2}</div></div>
+      </div>
+    </div>`;
+}
+
+function lockBonus(key) {
+  const b = S.bonus[key];
+  if (!b.actual) { showToast('Bitte zuerst Ergebnis auswählen.','err'); return; }
+  if (!confirm(`Ergebnis "${b.actual}" permanent sperren? Das kann nicht rückgängig gemacht werden!`)) return;
+  b.locked = true;
+  recompute();
+  persist();
+  renderBonus();
+  renderDash();
+  renderTable();
+  showToast('🔒 Bonuswette gesperrt!','ok');
+}
+
+// ══════════════════════════════════════════════════════
+// JOLPICA F1 API
+// ══════════════════════════════════════════════════════
+function matchDriver(givenName, familyName) {
+  const full = `${givenName} ${familyName}`;
+  return DRIVERS.find(d => d === full)
+      || DRIVERS.find(d => d.endsWith(familyName))
+      || DRIVERS.find(d => d.toLowerCase().includes(familyName.toLowerCase()))
+      || full;
+}
+
+async function loadAPI(ri, sessType) {
+  const cfg = RC[ri];
+  const base = `https://api.jolpi.ca/ergast/f1/2026/${cfg.r}`;
+  showToast('Lade Ergebnisse...','info');
+
+  try {
+    let url;
+    if (sessType === 'race')   url = `${base}/results.json`;
+    else if (sessType === 'sprint') url = `${base}/sprint.json`;
+    else                       url = `${base}/qualifying.json`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const races = data?.MRData?.RaceTable?.Races;
+    if (!races || !races.length) { showToast('Keine Daten verfügbar.','err'); return; }
+
+    const race = races[0];
+    let results;
+    if (sessType === 'race')        results = race.Results;
+    else if (sessType === 'sprint') results = race.SprintResults;
+    else                            results = race.QualifyingResults;
+
+    if (!results || !results.length) { showToast('Keine Ergebnisse in der API.','err'); return; }
+
+    const n = sessType === 'race' ? 8 : 4;
+    const mapped = results.slice(0,n).map(r =>
+      matchDriver(r.Driver.givenName, r.Driver.familyName));
+
+    const r = S.races[ri];
+    if (sessType === 'race')        r.raceResult   = mapped;
+    else if (sessType === 'sprint') r.sprintResult = mapped;
+    else                            r.qualiResult  = mapped;
+
+    recompute();
+    persist();
+    renderRaceList();
+    renderDash();
+    renderTable();
+    // Karte wieder öffnen
+    document.getElementById(`rc-${ri}`)?.classList.add('open');
+    showToast(`✓ ${mapped.length} Ergebnisse geladen!`,'ok');
+  } catch(e) {
+    console.error(e);
+    showToast(`API-Fehler: ${e.message}`,'err');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// EVENTS: Dropdown-Änderungen (delegiert)
+// ══════════════════════════════════════════════════════
+document.getElementById('race-list').addEventListener('change', e => {
+  const sel = e.target;
+  if (!sel.classList.contains('drv-sel')) return;
+  const {ri, sess, pl, pos} = sel.dataset;
+  const r = S.races[+ri];
+  const val = sel.value || null;
+
+  if (pl) {
+    // Tipp ändern
+    const key = `${sess}Tips${pl}`;
+    if (r[key]) r[key][+pos] = val;
+  } else {
+    // Ergebnis ändern
+    const key = `${sess}Result`;
+    if (r[key]) r[key][+pos] = val;
+  }
+
+  recompute();
+  persist();
+  // Punkte-Zellen neu rendern ohne ganzen race-list zu rebuilden
+  refreshRaceCard(+ri);
+  renderDash();
+  renderTable();
+});
+
+document.getElementById('bonus-section').addEventListener('change', e => {
+  const sel = e.target;
+  if (!sel.classList.contains('drv-sel')) return;
+  const {bkey, bfield} = sel.dataset;
+  if (!bkey || !bfield) return;
+  S.bonus[bkey][bfield] = sel.value || '';
+  // Lock-Button (de)aktivieren
+  const lockBtn = sel.closest('.bonus-card')?.querySelector('.lock-btn');
+  if (lockBtn) lockBtn.disabled = !S.bonus[bkey].actual;
+  recompute();
+  persist();
+  renderBonus();
+});
+
+function refreshRaceCard(ri) {
+  // Nur den Inhalt der bereits geöffneten Karte neu aufbauen
+  const card = document.getElementById(`rc-${ri}`);
+  if (!card || !card.classList.contains('open')) return;
+  renderRaceList();
+  document.getElementById(`rc-${ri}`)?.classList.add('open');
+}
+
+// ══════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════
+function renderDash() {
+  recompute();
+  const t1=total(1), t2=total(2), gap=Math.abs(t1-t2);
+  const lead = t1>t2?1:t2>t1?2:0;
+  const d = done();
+  const w1=d.filter(r=>r.pts1>r.pts2).length, w2=d.filter(r=>r.pts2>r.pts1).length;
+
+  const qp1=S.races.filter((r,i)=>!RC[i].sp&&r.qualiResult).reduce((s,r)=>s+calcScore(r.qualiTips1,r.qualiResult,PTS_QS),0);
+  const qp2=S.races.filter((r,i)=>!RC[i].sp&&r.qualiResult).reduce((s,r)=>s+calcScore(r.qualiTips2,r.qualiResult,PTS_QS),0);
+  const sp1=S.races.filter((r,i)=>RC[i].sp&&r.sprintResult).reduce((s,r)=>s+calcScore(r.sprintTips1,r.sprintResult,PTS_QS),0);
+  const sp2=S.races.filter((r,i)=>RC[i].sp&&r.sprintResult).reduce((s,r)=>s+calcScore(r.sprintTips2,r.sprintResult,PTS_QS),0);
+  const rp1=S.races.reduce((s,r)=>s+calcScore(r.raceTips1,r.raceResult,PTS_RACE),0);
+  const rp2=S.races.reduce((s,r)=>s+calcScore(r.raceTips2,r.raceResult,PTS_RACE),0);
+
+  document.getElementById('hero').innerHTML=`
+  <div class="score-hero">
+    <div class="score-side s1-side">
+      <div class="score-bg">1</div>
+      <div class="score-label">Spieler 1</div>
+      <div class="score-name">${S.name1}${lead===1?'<span class="lead-pill">Führt</span>':''}</div>
+      <div class="score-pts">${t1}</div>
+      <div class="score-chips">
+        <div class="chip">Quali <b>${qp1}</b></div>
+        <div class="chip">Sprint <b>${sp1}</b></div>
+        <div class="chip">Rennen <b>${rp1}</b></div>
+        <div class="chip">Bonus <b>${S.bonusPts1}</b></div>
+      </div>
+    </div>
+    <div class="vs-col">
+      <div class="vs-text">VS</div>
+      <div class="vs-gap">${gap>0?gap+' Pkt<br>Abstand':'Gleich&shy;stand'}</div>
+    </div>
+    <div class="score-side s2-side">
+      <div class="score-bg">2</div>
+      <div class="score-label">Spieler 2</div>
+      <div class="score-name">${S.name2}${lead===2?'<span class="lead-pill">Führt</span>':''}</div>
+      <div class="score-pts">${t2}</div>
+      <div class="score-chips">
+        <div class="chip">Quali <b>${qp2}</b></div>
+        <div class="chip">Sprint <b>${sp2}</b></div>
+        <div class="chip">Rennen <b>${rp2}</b></div>
+        <div class="chip">Bonus <b>${S.bonusPts2}</b></div>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-val">${d.length}</div><div class="kpi-label">Rennen gespielt</div></div>
+    <div class="kpi"><div class="kpi-val">${RC.length-d.length}</div><div class="kpi-label">Noch ausstehend</div></div>
+    <div class="kpi"><div class="kpi-val">${w1}–${w2}</div><div class="kpi-label">Siege S1 : S2</div></div>
+    <div class="kpi"><div class="kpi-val">${gap}</div><div class="kpi-label">Punktedifferenz</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// TABELLE
+// ══════════════════════════════════════════════════════
+function renderTable() {
+  document.getElementById('th1').textContent = S.name1;
+  document.getElementById('th2').textContent = S.name2;
+  const d = done();
+
+  document.getElementById('tbl-body').innerHTML = !d.length
+    ? `<tr><td colspan="5" style="color:var(--muted);padding:24px;text-align:center">Noch keine Ergebnisse eingetragen.</td></tr>`
+    : d.map(r => {
+        const w = r.pts1>r.pts2
+          ? `<span class="winner-badge wb1">${S.name1}</span>`
+          : r.pts2>r.pts1
+          ? `<span class="winner-badge wb2">${S.name2}</span>`
+          : `<span class="winner-badge wbt">Gleich</span>`;
+        const t = r.sprint
+          ? '<span class="tag sprint" style="font-size:10px">Sprint WE</span>'
+          : '<span class="tag quali" style="font-size:10px">Normal</span>';
+        const leg = r.legacy ? ' <span style="font-size:9px;color:var(--muted)">(importiert)</span>' : '';
+        return `<tr><td>${r.name}${leg}</td><td>${t}</td><td class="td-pts c1">${r.pts1}</td><td class="td-pts c2">${r.pts2}</td><td>${w}</td></tr>`;
+      }).join('');
+
+  const t1 = total(1), t2 = total(2);
+  document.getElementById('tbl-foot').innerHTML = `
+    <tr>
+      <td colspan="2" style="font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;font-size:12px;color:var(--muted)">
+        Gesamt (inkl. Bonus)
+      </td>
+      <td class="td-pts c1">${t1}</td>
+      <td class="td-pts c2">${t2}</td>
+      <td>${t1>t2?`<span class="winner-badge wb1">${S.name1}</span>`:t2>t1?`<span class="winner-badge wb2">${S.name2}</span>`:`<span class="winner-badge wbt">Gleich</span>`}</td>
+    </tr>`;
+}
+
+// ══════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════
+const CH = {};
+const GC = '#1e1e1e';
+
+function bo() {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#888',font:{family:'Barlow',size:12},boxWidth:14}}},
+    scales:{
+      x:{ticks:{color:'#555',font:{size:11}},grid:{color:GC}},
+      y:{ticks:{color:'#555'},grid:{color:GC}}
+    }
+  };
+}
+function dc(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+
+function drawCharts() {
+  const d = done(), lbs = d.map(r=>r.name);
+  dc('l5');
+  const l5 = d.slice(-5);
+  CH['l5'] = new Chart(document.getElementById('c-last5'),{type:'bar',data:{labels:l5.map(r=>r.name),datasets:[
+    {label:S.name1,data:l5.map(r=>r.pts1),backgroundColor:'rgba(232,0,29,0.72)',borderRadius:5},
+    {label:S.name2,data:l5.map(r=>r.pts2),backgroundColor:'rgba(30,144,255,0.72)',borderRadius:5}
+  ]},options:bo()});
+
+  dc('cum');
+  CH['cum'] = new Chart(document.getElementById('c-cum'),{type:'line',data:{labels:lbs,datasets:[
+    {label:S.name1,data:cumul(1),borderColor:'#e8001d',backgroundColor:'rgba(232,0,29,0.06)',fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:'#e8001d'},
+    {label:S.name2,data:cumul(2),borderColor:'#1e90ff',backgroundColor:'rgba(30,144,255,0.06)',fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:'#1e90ff'}
+  ]},options:bo()});
+
+  dc('per');
+  CH['per'] = new Chart(document.getElementById('c-per'),{type:'bar',data:{labels:lbs,datasets:[
+    {label:S.name1,data:d.map(r=>r.pts1),backgroundColor:'rgba(232,0,29,0.72)',borderRadius:4},
+    {label:S.name2,data:d.map(r=>r.pts2),backgroundColor:'rgba(30,144,255,0.72)',borderRadius:4}
+  ]},options:bo()});
+
+  dc('diff');
+  const diffs = d.map(r=>r.pts1-r.pts2);
+  CH['diff'] = new Chart(document.getElementById('c-diff'),{type:'bar',data:{labels:lbs,datasets:[{
+    label:`${S.name1} − ${S.name2}`,data:diffs,
+    backgroundColor:diffs.map(v=>v>=0?'rgba(232,0,29,0.72)':'rgba(30,144,255,0.72)'),borderRadius:4
+  }]},options:{...bo(),scales:{...bo().scales,y:{...bo().scales.y,ticks:{color:'#555',callback:v=>(v>0?'+':'')+v}}}}});
+}
+
+// ══════════════════════════════════════════════════════
+// EINSTELLUNGEN
+// ══════════════════════════════════════════════════════
+function saveNames() {
+  const n1=document.getElementById('n1in').value.trim();
+  const n2=document.getElementById('n2in').value.trim();
+  if(n1) S.name1=n1;
+  if(n2) S.name2=n2;
+  persist(); renderAll();
+  showToast('Namen gespeichert ✓','ok');
+}
+
+function resetData() {
+  if(!confirm('Wirklich ALLE Daten löschen?\n\nTipps, Ergebnisse, Bonuswetten — alles wird zurückgesetzt.\nNamen bleiben erhalten.')) return;
+  const n1=S.name1, n2=S.name2;
+  S = mkInitialState();
+  S.name1=n1; S.name2=n2;
+  persist(); renderAll();
+  showToast('Alle Daten gelöscht.','info');
+}
+
+// ══════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+document.getElementById('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+  if (['dashboard','verlauf'].includes(tab.dataset.tab)) setTimeout(drawCharts,60);
+});
+
+// ══════════════════════════════════════════════════════
+// LOCK BADGE AUTO-UPDATE (jede Minute)
+// ══════════════════════════════════════════════════════
+setInterval(() => {
+  document.querySelectorAll('[data-locktime]').forEach(el => {
+    el.innerHTML = lockBadge(el.dataset.locktime);
+  });
+}, 60000);
+
+// ══════════════════════════════════════════════════════
+// PWA: Install Prompt
+// ══════════════════════════════════════════════════════
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'block';
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') showToast('App installiert! ✓','ok');
+  deferredPrompt = null;
+  document.getElementById('install-btn').style.display = 'none';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-btn').style.display = 'none';
+});
+
+// Service Worker registrieren
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW:', e));
+}
+
+// ══════════════════════════════════════════════════════
+// COUNTDOWN
+// ══════════════════════════════════════════════════════
+function renderCountdown() {
+  const el = document.getElementById('countdown-card');
+  if (!el) return;
+  const now = Date.now();
+  let next = null;
+  for (const cfg of RC) {
+    const times = cfg.sp ? [cfg.st, cfg.rt] : [cfg.qt, cfg.rt];
+    for (const t of times) {
+      if (!t || t.startsWith('2099')) continue;
+      const ms = new Date(t).getTime();
+      if (ms > now) {
+        const lbl = (cfg.sp && t===cfg.st) ? 'Sprint' : (t===cfg.rt) ? 'Rennen' : 'Qualifying';
+        next = {race:cfg.n, time:t, label:lbl};
+        break;
+      }
+    }
+    if (next) break;
+  }
+  if (!next) { el.innerHTML=''; return; }
+  const diff = new Date(next.time).getTime() - now;
+  const days  = Math.floor(diff/86400000);
+  const hours = Math.floor((diff%86400000)/3600000);
+  const mins  = Math.floor((diff%3600000)/60000);
+  const secs  = Math.floor((diff%60000)/1000);
+  const col   = diff<3600000?'var(--red)':diff<86400000?'var(--gold)':'var(--green)';
+  const tOpen = diff>0 && !isLocked(next.time);
+  el.innerHTML=`
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:160px;">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;font-family:'Barlow Condensed',sans-serif;">Nächstes Event</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;">${next.race} – <span style="color:var(--red)">${next.label}</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">${new Date(next.time).toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} UTC</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-end;">
+      ${[{v:days,l:'Tage'},{v:hours,l:'Std'},{v:mins,l:'Min'},{v:secs,l:'Sek'}].map(({v,l},i,a)=>`
+        <div style="text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;color:${col};min-width:44px;">${String(v).padStart(2,'0')}</div>
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;">${l}</div>
+        </div>${i<a.length-1?`<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--border2);padding-bottom:8px;">:</div>`:''}
+      `).join('')}
+    </div>
+    ${tOpen
+      ?`<div style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:8px 14px;font-size:11px;color:var(--green);">✏️ Tipps offen</div>`
+      :`<div style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:8px;padding:8px 14px;font-size:11px;color:var(--orange);">🔒 Tipps gesperrt</div>`
+    }
+  </div>`;
+}
+setInterval(renderCountdown, 1000);
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+function renderAll() {
+  recompute();
+  renderCountdown();
+  renderDash();
+  renderLegend();
+  renderRaceList();
+  renderBonus();
+  renderTable();
+  document.getElementById('n1in').value = S.name1;
+  document.getElementById('n2in').value = S.name2;
+  drawCharts();
+  // Player-Indicator
+  const pname  = currentPlayer===1?S.name1:currentPlayer===2?S.name2:'?';
+  const pcolor = currentPlayer===1?'var(--red)':currentPlayer===2?'var(--blue)':'var(--muted)';
+  const pi = document.getElementById('current-player-name');
+  if (pi) { pi.textContent=pname; pi.style.color=pcolor; }
+  // Player-Screen Namen
+  const ps1=document.getElementById('ps-name1'), ps2=document.getElementById('ps-name2');
+  if(ps1) ps1.textContent=S.name1;
+  if(ps2) ps2.textContent=S.name2;
+}
+</script>
+</body>
+</html>
