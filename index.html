@@ -438,10 +438,10 @@ function mkRace(cfg) {
 
 function mkBonus() {
   return {
-    wdc:  {tip1:'', tip2:'', actual:'', locked:false},
-    wcc:  {tip1:'', tip2:'', actual:'', locked:false},
-    pole: {tip1:'', tip2:'', actual:'', locked:false},
-    fl:   {tip1:'', tip2:'', actual:'', locked:false}
+    wdc:  {tip1:'', tip2:'', actual:'', tip1Locked:false, tip2Locked:false, resultLocked:false},
+    wcc:  {tip1:'', tip2:'', actual:'', tip1Locked:false, tip2Locked:false, resultLocked:false},
+    pole: {tip1:'', tip2:'', actual:'', tip1Locked:false, tip2Locked:false, resultLocked:false},
+    fl:   {tip1:'', tip2:'', actual:'', tip1Locked:false, tip2Locked:false, resultLocked:false}
   };
 }
 
@@ -487,7 +487,14 @@ function mergeFirebase(fbData) {
   // Bonus
   if (fbData.bonus) {
     ['wdc','wcc','pole','fl'].forEach(k => {
-      if (fbData.bonus[k]) Object.assign(S.bonus[k], fbData.bonus[k]);
+      if (!fbData.bonus[k]) return;
+      Object.assign(S.bonus[k], fbData.bonus[k]);
+      // Backward compat: altes 'locked'-Feld → alles gesperrt
+      if (fbData.bonus[k].locked && !fbData.bonus[k].resultLocked) {
+        S.bonus[k].tip1Locked   = true;
+        S.bonus[k].tip2Locked   = true;
+        S.bonus[k].resultLocked = true;
+      }
     });
   }
 
@@ -685,7 +692,7 @@ function recompute() {
   let bp1 = 0, bp2 = 0;
   ['wdc','wcc','pole','fl'].forEach(k => {
     const b = S.bonus[k];
-    if (b && b.locked && b.actual) {
+    if (b && b.resultLocked && b.actual) {
       if (b.tip1 === b.actual) bp1 += BONUS_PTS;
       if (b.tip2 === b.actual) bp2 += BONUS_PTS;
     }
@@ -1007,60 +1014,83 @@ function renderBonus() {
   function bonusCard(key, title, sub, useTeams) {
     const b = S.bonus[key];
     if (!b) return '';
-    const {tip1, tip2, actual, locked} = b;
-    const myIsP1 = currentPlayer === 1;
-    const myTip   = myIsP1 ? tip1  : tip2;
-    const oTip    = myIsP1 ? tip2  : tip1;
-    const myField = myIsP1 ? 'tip1' : 'tip2';
-    const myCls   = myIsP1 ? 'sel-s1' : 'sel-s2';
+    const {tip1, tip2, actual, tip1Locked, tip2Locked, resultLocked} = b;
+    const myIsP1     = currentPlayer === 1;
+    const myTip      = myIsP1 ? tip1 : tip2;
+    const oTip       = myIsP1 ? tip2 : tip1;
+    const myField    = myIsP1 ? 'tip1' : 'tip2';
+    const myCls      = myIsP1 ? 'sel-s1' : 'sel-s2';
+    const myLocked   = myIsP1 ? tip1Locked : tip2Locked;
+    const oLocked    = myIsP1 ? tip2Locked : tip1Locked;
+    const bothLocked = tip1Locked && tip2Locked;
 
     const selFn = useTeams
       ? (v,c,d,da) => teamSel(v,c,d,da)
       : (v,c,d,da) => driverSel(v,c,d,da);
 
-    // Eigener Tipp: editierbar; fremder Tipp: bis Sperrung verborgen
-    let mySelHtml, oSelHtml;
-    if (locked) {
-      mySelHtml = `<span class="locked-tip${!myTip?' empty':''}">${myTip||'—'}</span>`;
-      oSelHtml  = `<span class="locked-tip${!oTip?' empty':''}">${oTip||'—'}</span>`;
-    } else {
-      mySelHtml = selFn(myTip, myCls, false, {bkey:key, bfield:myField});
-      oSelHtml  = `<span style="color:var(--border2);letter-spacing:3px;font-size:13px;line-height:2;">●●●</span>`;
-    }
+    // Eigener Tipp: editierbar bis selbst gesperrt
+    const mySelHtml = myLocked
+      ? `<span class="locked-tip${!myTip?' empty':''}">${myTip||'—'}</span>`
+      : selFn(myTip, myCls, false, {bkey:key, bfield:myField});
+
+    // Fremder Tipp: sichtbar erst wenn beide abgegeben haben (oder Ergebnis final)
+    const oSelHtml = (bothLocked || resultLocked)
+      ? `<span class="locked-tip${!oTip?' empty':''}">${oTip||'—'}</span>`
+      : `<span style="color:var(--border2);letter-spacing:3px;font-size:13px;line-height:2.2;">●●●</span>`;
 
     const t1Html = myIsP1 ? mySelHtml : oSelHtml;
     const t2Html = myIsP1 ? oSelHtml  : mySelHtml;
 
-    const actSel = locked
+    // Ergebnis: editierbar bis resultLocked
+    const actSel = resultLocked
       ? `<span class="locked-tip${!actual?' empty':''}">${actual||'—'}</span>`
       : selFn(actual, 'sel-res', false, {bkey:key, bfield:'actual'});
 
     let ptsHtml = '';
-    if (locked && actual) {
+    if (resultLocked && actual) {
       const p1 = tip1===actual?BONUS_PTS:0, p2 = tip2===actual?BONUS_PTS:0;
       ptsHtml = `<div class="bonus-pts-row">
-        <div class="bonus-pt-item"><div class="bonus-pt-val c1" style="color:var(--red)">${p1}</div><div class="bonus-pt-label">${S.name1}</div></div>
-        <div class="bonus-pt-item"><div class="bonus-pt-val c2" style="color:var(--blue)">${p2}</div><div class="bonus-pt-label">${S.name2}</div></div>
+        <div class="bonus-pt-item"><div class="bonus-pt-val" style="color:var(--red)">${p1}</div><div class="bonus-pt-label">${S.name1}</div></div>
+        <div class="bonus-pt-item"><div class="bonus-pt-val" style="color:var(--blue)">${p2}</div><div class="bonus-pt-label">${S.name2}</div></div>
         <div class="bonus-pt-item"><div class="bonus-pt-val" style="color:var(--gold)">${BONUS_PTS}</div><div class="bonus-pt-label">Max Punkte</div></div>
       </div>`;
     }
 
-    const lockedHtml = locked ? `
-      <div class="bonus-locked-row">
-        <span class="bonus-locked-icon">🔒</span>
-        <span class="bonus-locked-text">Gesperrt — Ergebnis: <b>${actual||'—'}</b></span>
-      </div>` : '';
+    // Status-Anzeige
+    let statusHtml = '';
+    if (resultLocked) {
+      statusHtml = `<div class="bonus-locked-row"><span class="bonus-locked-icon">🔒</span><span class="bonus-locked-text">Ergebnis gesperrt: <b>${actual||'—'}</b></span></div>`;
+    } else if (bothLocked) {
+      statusHtml = `<div class="bonus-locked-row" style="border-color:rgba(0,230,118,0.2);">
+        <span class="bonus-locked-icon">✅</span>
+        <span class="bonus-locked-text">Beide Tipps abgegeben — Ergebnis am Saisonende eintragen &amp; sperren.</span>
+      </div>`;
+    } else if (myLocked) {
+      statusHtml = `<div class="bonus-locked-row" style="border-color:rgba(245,197,24,0.2);">
+        <span class="bonus-locked-icon">⏳</span>
+        <span class="bonus-locked-text">Dein Tipp ist abgegeben. Warte auf den anderen Spieler.</span>
+      </div>`;
+    }
+
+    // Buttons
+    let btnsHtml = '';
+    if (!myLocked && !resultLocked) {
+      btnsHtml += `<button class="save-btn" onclick="lockMyTip('${key}')" ${!myTip?'disabled':''}>✓ Tipp abgeben</button>`;
+    }
+    if (!resultLocked) {
+      btnsHtml += ` <button class="lock-btn" onclick="lockBonus('${key}')" ${!actual?'disabled':''}>🔒 Ergebnis sperren</button>`;
+    }
 
     return `<div class="bonus-card">
       <div class="bonus-title">${title}</div>
       <div class="bonus-sub">${sub}</div>
       <div class="bonus-grid">
         <div>
-          <div class="bonus-col-label c1">${S.name1}</div>
+          <div class="bonus-col-label c1">${S.name1}${tip1Locked?' 🔒':''}</div>
           ${t1Html}
         </div>
         <div>
-          <div class="bonus-col-label c2">${S.name2}</div>
+          <div class="bonus-col-label c2">${S.name2}${tip2Locked?' 🔒':''}</div>
           ${t2Html}
         </div>
         <div>
@@ -1069,16 +1099,16 @@ function renderBonus() {
         </div>
       </div>
       ${ptsHtml}
-      ${!locked ? `<button class="lock-btn" onclick="lockBonus('${key}')" ${!actual?'disabled':''}>🔒 Ergebnis sperren</button>` : ''}
-      ${lockedHtml}
+      ${btnsHtml ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">${btnsHtml}</div>` : ''}
+      ${statusHtml}
     </div>`;
   }
 
   document.getElementById('bonus-section').innerHTML =
-    bonusCard('wdc',  'Fahrerweltmeister',        'Wer wird Weltmeister? Richtig = '+BONUS_PTS+' Punkte. Einmal gesperrt, nie mehr änderbar.', false) +
-    bonusCard('wcc',  'Konstrukteursweltmeister', 'Welches Team gewinnt die WM? Richtig = '+BONUS_PTS+' Punkte. Einmal gesperrt, nie mehr änderbar.', true) +
-    bonusCard('pole', 'Meiste Pole Positions',    'Welcher Fahrer holt die meisten Poles? Richtig = '+BONUS_PTS+' Punkte. Am Saisonende sperren.', false) +
-    bonusCard('fl',   'Meiste Schnellste Runden', 'Welcher Fahrer fährt die meisten Fastest Laps? Richtig = '+BONUS_PTS+' Punkte. Am Saisonende sperren.', false) +
+    bonusCard('wdc',  'Fahrerweltmeister',        'Tipp einmal abgeben — Ergebnis am Saisonende eintragen. Richtig = '+BONUS_PTS+' Punkte.', false) +
+    bonusCard('wcc',  'Konstrukteursweltmeister', 'Tipp einmal abgeben — Ergebnis am Saisonende eintragen. Richtig = '+BONUS_PTS+' Punkte.', true) +
+    bonusCard('pole', 'Meiste Pole Positions',    'Tipp einmal abgeben — Ergebnis am Saisonende eintragen. Richtig = '+BONUS_PTS+' Punkte.', false) +
+    bonusCard('fl',   'Meiste Schnellste Runden', 'Tipp einmal abgeben — Ergebnis am Saisonende eintragen. Richtig = '+BONUS_PTS+' Punkte.', false) +
     `<div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;gap:24px;align-items:center;">
       <div style="flex:1;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Bonus Punkte Gesamt</div>
       <div style="display:flex;gap:20px;">
@@ -1088,17 +1118,30 @@ function renderBonus() {
     </div>`;
 }
 
+function lockMyTip(key) {
+  const b = S.bonus[key];
+  const myIsP1 = currentPlayer === 1;
+  const myTip      = myIsP1 ? b.tip1 : b.tip2;
+  const myLockKey  = myIsP1 ? 'tip1Locked' : 'tip2Locked';
+  if (!myTip) { showToast('Bitte zuerst einen Tipp auswählen.', 'err'); return; }
+  if (!confirm(`Deinen Tipp "${myTip}" jetzt abgeben?\nDas kann nicht rückgängig gemacht werden!`)) return;
+  b[myLockKey] = true;
+  persist();
+  renderBonus();
+  showToast('✓ Tipp abgegeben!', 'ok');
+}
+
 function lockBonus(key) {
   const b = S.bonus[key];
-  if (!b.actual) { showToast('Bitte zuerst Ergebnis auswählen.','err'); return; }
-  if (!confirm(`Ergebnis "${b.actual}" permanent sperren? Das kann nicht rückgängig gemacht werden!`)) return;
-  b.locked = true;
+  if (!b.actual) { showToast('Bitte zuerst Ergebnis auswählen.', 'err'); return; }
+  if (!confirm(`Ergebnis "${b.actual}" permanent sperren?\nPunkte werden jetzt berechnet. Das kann nicht rückgängig gemacht werden!`)) return;
+  b.resultLocked = true;
   recompute();
   persist();
   renderBonus();
   renderDash();
   renderTable();
-  showToast('🔒 Bonuswette gesperrt!','ok');
+  showToast('🔒 Ergebnis gesperrt!', 'ok');
 }
 
 // ══════════════════════════════════════════════════════
