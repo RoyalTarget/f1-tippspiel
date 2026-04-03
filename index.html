@@ -17,27 +17,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
 
 :root {
-  --bg:#080808;--s1:#111;--s2:#181818;--s3:#202020;
-  --border:#2c2c2c;--border2:#383838;
-  --text:#efefef;--muted:#666;--muted2:#888;
+  --bg:#07070e;--s1:#0f0f1a;--s2:#14141f;--s3:#1a1a28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#eeeef8;--muted:#5c5c7c;--muted2:#8888aa;
   --red:#e8001d;--red2:#ff1a33;--blue:#1e90ff;
   --gold:#f5c518;--green:#00e676;--orange:#ff6b35;
+  --radius:14px;--radius-sm:8px;
+  --transition:.2s cubic-bezier(.4,0,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden;background-image:radial-gradient(ellipse at 20% 0%,rgba(232,0,29,0.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(30,144,255,0.04) 0%,transparent 50%);}
 
-header{position:sticky;top:0;z-index:200;background:rgba(8,8,8,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;}
+header{position:sticky;top:0;z-index:200;background:rgba(7,7,14,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;}
 .logo{display:flex;align-items:center;gap:10px;}
 .logo-flag{display:flex;gap:2px;}
 .logo-flag span{display:block;width:5px;height:22px;border-radius:1px;}
-.logo-flag span:nth-child(odd){background:#fff;}.logo-flag span:nth-child(even){background:#111;}
+.logo-flag span:nth-child(odd){background:#fff;opacity:.8;}.logo-flag span:nth-child(even){background:var(--red);}
 .logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:3px;text-transform:uppercase;}
 .logo-text em{color:var(--red);font-style:normal;}
-.season-badge{background:var(--red);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;padding:3px 10px;border-radius:3px;}
+.season-badge{background:var(--red);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;padding:3px 10px;border-radius:6px;}
 
 .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--s1);padding:0 28px;overflow-x:auto;position:sticky;top:58px;z-index:150;scrollbar-width:none;}
 .tabs::-webkit-scrollbar{display:none;}
-.tab{padding:13px 18px;cursor:pointer;color:var(--muted);font-size:13px;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:'Barlow Condensed',sans-serif;font-weight:600;}
+.tab{padding:14px 16px;cursor:pointer;color:var(--muted);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all var(--transition);white-space:nowrap;font-family:'Barlow Condensed',sans-serif;font-weight:700;}
 .tab:hover{color:var(--muted2);}
 .tab.active{color:var(--red);border-bottom-color:var(--red);}
 
@@ -45,42 +47,46 @@ main{padding:28px;max-width:1100px;margin:0 auto;}
 .section{display:none;}.section.active{display:block;}
 
 /* SCORE HERO */
-.score-hero{display:grid;grid-template-columns:1fr auto 1fr;background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.score-hero{display:grid;grid-template-columns:1fr auto 1fr;background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;position:relative;}
+.score-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(232,0,29,0.04) 0%,transparent 50%,rgba(30,144,255,0.04) 100%);pointer-events:none;}
 .score-side{padding:28px 32px;position:relative;overflow:hidden;}
 .score-bg{position:absolute;right:-8px;top:-8px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:110px;opacity:0.05;line-height:1;pointer-events:none;}
 .score-label{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;}
 .score-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .score-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:68px;line-height:1;margin:4px 0;}
-.s1-side .score-pts{color:var(--red);}.s2-side .score-pts{color:var(--blue);}
+.s1-side .score-pts{color:var(--red);text-shadow:0 0 40px rgba(232,0,29,0.3);}.s2-side .score-pts{color:var(--blue);text-shadow:0 0 40px rgba(30,144,255,0.3);}
 .score-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-.chip{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:4px 9px;font-size:11px;color:var(--muted2);}
+.chip{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted2);}
 .chip b{color:var(--text);}
 .vs-col{padding:20px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-left:1px solid var(--border);border-right:1px solid var(--border);}
 .vs-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--muted);letter-spacing:2px;}
 .vs-gap{font-size:11px;color:var(--muted);text-align:center;line-height:1.6;}
-.lead-pill{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:1px;text-transform:uppercase;}
+.lead-pill{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px;letter-spacing:1px;text-transform:uppercase;box-shadow:0 0 12px rgba(232,0,29,0.4);}
 
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.kpi{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;transition:border-color var(--transition);}
+.kpi:hover{border-color:var(--border2);}
 .kpi-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;color:var(--gold);}
 .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
 
-.chart-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px;}
+.chart-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:16px;}
 .chart-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
 .chart-stripe{width:3px;height:16px;background:var(--red);border-radius:2px;flex-shrink:0;}
 .chart-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:1px;text-transform:uppercase;}
 .chart-wrap{position:relative;}
 
 /* RACE CARDS */
-.race-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
-.race-card:hover{border-color:var(--border2);}
+.race-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color var(--transition),box-shadow var(--transition);}
+.race-card:hover{border-color:var(--border2);box-shadow:0 4px 20px rgba(0,0,0,0.3);}
 .race-card.done{border-left:3px solid var(--green);}
+.race-card.done .race-num{color:var(--green);}
 .race-header{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;user-select:none;}
 .race-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--red);width:34px;flex-shrink:0;}
 .race-meta{flex:1;min-width:0;}
 .race-name-txt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;}
-.race-tags{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;}
-.tag{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+.race-circuit{font-size:11px;color:var(--muted);margin-top:2px;}
+.race-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
+.tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
 .tag.sprint{background:rgba(245,197,24,0.12);color:var(--gold);border:1px solid rgba(245,197,24,0.2);}
 .tag.quali{background:rgba(30,144,255,0.1);color:var(--blue);border:1px solid rgba(30,144,255,0.18);}
 .tag.race-tag{background:rgba(232,0,29,0.1);color:var(--red);border:1px solid rgba(232,0,29,0.18);}
@@ -94,7 +100,7 @@ main{padding:28px;max-width:1100px;margin:0 auto;}
 .race-card.open .race-chev{transform:rotate(180deg);}
 .race-body{display:none;padding:0 18px 18px;}
 .race-card.open .race-body{display:block;}
-.legacy-notice{background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--muted2);font-size:12px;margin-top:12px;}
+.legacy-notice{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--muted2);font-size:12px;margin-top:12px;}
 .legacy-notice b{color:var(--text);}
 
 /* SESSION BLOCKS */
@@ -102,25 +108,25 @@ main{padding:28px;max-width:1100px;margin:0 auto;}
 .sess-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
 .sess-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .sess-label-txt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);}
-.lock-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--orange);background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);border-radius:4px;padding:2px 7px;font-weight:700;letter-spacing:0.5px;}
-.open-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.15);border-radius:4px;padding:2px 7px;font-weight:700;letter-spacing:0.5px;}
-.urgent-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--gold);background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.2);border-radius:4px;padding:2px 7px;font-weight:700;letter-spacing:0.5px;}
+.lock-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--orange);background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.18);border-radius:5px;padding:2px 8px;font-weight:700;letter-spacing:0.5px;}
+.open-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.14);border-radius:5px;padding:2px 8px;font-weight:700;letter-spacing:0.5px;}
+.urgent-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--gold);background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.18);border-radius:5px;padding:2px 8px;font-weight:700;letter-spacing:0.5px;}
 
-.api-btn{background:var(--s3);border:1px solid var(--border2);border-radius:5px;color:var(--muted2);padding:4px 10px;cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:all .2s;}
-.api-btn:hover{background:var(--s2);color:var(--text);border-color:var(--gold);}
-.api-btn:disabled{opacity:0.4;cursor:not-allowed;}
-.manual-lock-btn{background:var(--s3);border:1px solid rgba(255,107,53,0.3);border-radius:5px;color:var(--orange);padding:4px 10px;cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:all .2s;}
-.manual-lock-btn:hover{background:rgba(255,107,53,0.1);border-color:var(--orange);}
+.api-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--muted2);padding:5px 12px;cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:all var(--transition);}
+.api-btn:hover{background:rgba(255,255,255,0.08);color:var(--text);border-color:var(--gold);}
+.api-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.manual-lock-btn{background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:6px;color:var(--orange);padding:5px 12px;cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:all var(--transition);}
+.manual-lock-btn:hover{background:rgba(255,107,53,0.12);border-color:var(--orange);}
 
 /* TIPS TABLE */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border);}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius-sm);border:1px solid var(--border);}
 .pos-table{width:100%;border-collapse:collapse;min-width:420px;}
 .pos-table th{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 10px;text-align:center;border-bottom:1px solid var(--border);background:var(--s3);}
 .pos-table th:first-child{text-align:left;width:40px;}
 .pos-table th.th-s1{color:var(--red);}
 .pos-table th.th-s2{color:var(--blue);}
 .pos-table th.th-res{color:var(--gold);}
-.pos-table td{padding:5px 8px;text-align:center;border-bottom:1px solid rgba(44,44,44,0.4);}
+.pos-table td{padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);}
 .pos-table tr:last-child td{border-bottom:none;}
 .pos-table tfoot td{border-top:1px solid var(--border);border-bottom:none;background:var(--s3);padding:7px 10px;}
 .td-pos{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--red);text-align:left;}
@@ -135,7 +141,7 @@ main{padding:28px;max-width:1100px;margin:0 auto;}
 /* SELECTS */
 select{background:var(--s3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 6px;font-size:12px;font-family:'Barlow',sans-serif;width:100%;min-width:110px;max-width:160px;cursor:pointer;-webkit-appearance:none;appearance:none;}
 select:focus{outline:none;border-color:var(--red);}
-select:disabled{opacity:0.45;cursor:not-allowed;border-color:var(--border);}
+select:disabled{opacity:0.35;cursor:not-allowed;border-color:var(--border);}
 .sel-s1:not(:disabled):focus{border-color:var(--red);}
 .sel-s2:not(:disabled):focus{border-color:var(--blue);}
 .sel-res:focus{border-color:var(--gold);}
@@ -146,15 +152,15 @@ select:disabled{opacity:0.45;cursor:not-allowed;border-color:var(--border);}
 .sess-tot-val.c1{color:var(--red);}.sess-tot-val.c2{color:var(--blue);}
 
 .save-row{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
-.save-btn{background:var(--red);color:#fff;border:none;border-radius:7px;padding:9px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
-.save-btn:hover{background:var(--red2);}
-.save-btn.ok{background:#1a5e3c;}
+.save-btn{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 24px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all var(--transition);box-shadow:0 2px 12px rgba(232,0,29,0.2);}
+.save-btn:hover{box-shadow:0 4px 20px rgba(232,0,29,0.4);transform:translateY(-1px);}
+.save-btn.ok{background:linear-gradient(135deg,#1a5e3c,#22804e);box-shadow:none;}
 
 /* LEGEND */
 .legend-row-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-.legend-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.legend-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;}
 .legend-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;color:var(--muted2);}
-.leg-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(44,44,44,0.4);font-size:12px;}
+.leg-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;}
 .leg-row:last-child{border-bottom:none;}
 .leg-pos{color:var(--muted);}
 .leg-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--gold);}
@@ -164,56 +170,57 @@ select:disabled{opacity:0.45;cursor:not-allowed;border-color:var(--border);}
 .score-table th{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}
 .score-table td{padding:10px 16px;border-bottom:1px solid rgba(44,44,44,0.4);}
 .score-table tr:last-child td{border-bottom:none;}
-.score-table tr:hover td{background:var(--s2);}
+.score-table tr:hover td{background:rgba(255,255,255,0.02);}
 .score-table tfoot td{border-top:2px solid var(--border2);background:var(--s3);font-weight:600;}
 .td-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;}
 .td-pts.c1{color:var(--red);}.td-pts.c2{color:var(--blue);}
-.winner-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;}
+.winner-badge{font-size:11px;font-weight:700;padding:2px 10px;border-radius:4px;letter-spacing:0.3px;}
 .wb1{background:rgba(232,0,29,0.14);color:var(--red);}
 .wb2{background:rgba(30,144,255,0.14);color:var(--blue);}
 .wbt{background:rgba(100,100,100,0.14);color:var(--muted2);}
 
 /* BONUS */
-.bonus-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;}
+.bonus-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:14px;transition:border-color var(--transition);}
+.bonus-card:hover{border-color:var(--border2);}
 .bonus-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
 .bonus-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
 .bonus-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;}
 .bonus-col-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;}
 .bonus-col-label.c1{color:var(--red);}.bonus-col-label.c2{color:var(--blue);}.bonus-col-label.cg{color:var(--gold);}
-.bonus-locked-row{display:flex;align-items:center;gap:10px;background:var(--s3);border-radius:8px;padding:10px 14px;margin-top:14px;}
+.bonus-locked-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-top:14px;}
 .bonus-locked-icon{font-size:18px;}
 .bonus-locked-text{font-size:12px;color:var(--muted2);line-height:1.5;}
 .bonus-pts-row{display:flex;gap:16px;margin-top:12px;}
 .bonus-pt-item{display:flex;flex-direction:column;gap:2px;}
 .bonus-pt-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;line-height:1;}
 .bonus-pt-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-.lock-btn{background:var(--gold);color:#111;border:none;border-radius:7px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
-.lock-btn:hover{background:#d4a600;}
-.lock-btn:disabled{background:var(--s3);color:var(--muted);cursor:not-allowed;border:1px solid var(--border);}
+.lock-btn{background:linear-gradient(135deg,var(--gold),#d4a600);color:#111;border:none;border-radius:var(--radius-sm);padding:9px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all var(--transition);box-shadow:0 2px 12px rgba(245,197,24,0.2);}
+.lock-btn:hover{box-shadow:0 4px 20px rgba(245,197,24,0.35);transform:translateY(-1px);}
+.lock-btn:disabled{background:var(--s3);color:var(--muted);cursor:not-allowed;border:1px solid var(--border);box-shadow:none;transform:none;}
 
 /* SETUP */
 .setup-wrap{max-width:440px;margin:0 auto;}
-.setup-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:26px;margin-bottom:16px;}
+.setup-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:26px;margin-bottom:16px;}
 .setup-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;color:var(--muted2);}
 .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
 .field label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 input[type=text]{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 13px;font-size:15px;font-family:'Barlow',sans-serif;transition:border-color .2s;}
-input[type=text]:focus{outline:none;border-color:var(--red);}
-.main-btn{background:var(--red);color:#fff;border:none;border-radius:7px;padding:10px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
-.main-btn:hover{background:var(--red2);}
-.danger-btn{background:var(--s2);color:var(--muted2);border:1px solid var(--border);border-radius:7px;padding:10px 22px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;}
-.danger-btn:hover{background:#2a1010;color:#ff7070;border-color:#4a1010;}
+input[type=text]:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(232,0,29,0.08);}
+.main-btn{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 24px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all var(--transition);box-shadow:0 2px 12px rgba(232,0,29,0.2);}
+.main-btn:hover{box-shadow:0 4px 20px rgba(232,0,29,0.35);transform:translateY(-1px);}
+.danger-btn{background:rgba(255,255,255,0.03);color:var(--muted2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 24px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;text-transform:uppercase;transition:all var(--transition);}
+.danger-btn:hover{background:rgba(255,60,60,0.08);color:#ff7070;border-color:rgba(255,60,60,0.3);}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;border:1px solid var(--border2);border-radius:10px;padding:12px 22px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:12px 22px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);white-space:nowrap;pointer-events:none;backdrop-filter:blur(10px);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{border-color:var(--green);color:var(--green);}
 .toast.err{border-color:var(--orange);color:var(--orange);}
 .toast.info{border-color:var(--blue);color:var(--blue);}
 
 /* INSTALL BUTTON */
-#install-btn{display:none;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);transition:all .2s;}
-#install-btn:hover{background:var(--s3);color:var(--text);}
+#install-btn{display:none;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:7px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);transition:all var(--transition);}
+#install-btn:hover{background:rgba(255,255,255,0.08);color:var(--text);}
 
 @media(max-width:680px){
   header{padding:0 14px;}
@@ -231,21 +238,21 @@ input[type=text]:focus{outline:none;border-color:var(--red);}
 <body>
 
 <!-- Player-Auswahlscreen -->
-<div id="player-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:#080808;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:24px;">
-  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;letter-spacing:4px;text-transform:uppercase;color:#efefef;">F1 <span style="color:#e8001d">Tipp</span>spiel <span style="background:#e8001d;color:#fff;padding:2px 10px;border-radius:3px;font-size:22px;">2026</span></div>
-  <div style="font-size:14px;color:#666;letter-spacing:2px;text-transform:uppercase;">Wer bist du?</div>
+<div id="player-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:#07070e;background-image:radial-gradient(ellipse at 30% 20%,rgba(232,0,29,0.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(30,144,255,0.06) 0%,transparent 50%);flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:24px;">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;letter-spacing:4px;text-transform:uppercase;color:#eeeef8;">F1 <span style="color:#e8001d">Tipp</span>spiel <span style="background:#e8001d;color:#fff;padding:2px 12px;border-radius:6px;font-size:22px;vertical-align:middle;">2026</span></div>
+  <div style="font-size:12px;color:rgba(255,255,255,0.25);letter-spacing:3px;text-transform:uppercase;">Wer bist du?</div>
   <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
-    <button onclick="setPlayer(1)" style="background:#e8001d;color:#fff;border:none;border-radius:10px;padding:20px 40px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-      <div style="font-size:12px;font-weight:400;opacity:0.8;margin-bottom:4px;letter-spacing:1px">SPIELER 1</div>
+    <button onclick="setPlayer(1)" style="background:linear-gradient(135deg,#e8001d,#ff1a33);color:#fff;border:none;border-radius:12px;padding:22px 44px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(232,0,29,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(232,0,29,0.45)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 24px rgba(232,0,29,0.3)'">
+      <div style="font-size:11px;font-weight:600;opacity:0.75;margin-bottom:5px;letter-spacing:2px">SPIELER 1</div>
       <div id="ps-name1">André</div>
     </button>
-    <button onclick="setPlayer(2)" style="background:#1e90ff;color:#fff;border:none;border-radius:10px;padding:20px 40px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-      <div style="font-size:12px;font-weight:400;opacity:0.8;margin-bottom:4px;letter-spacing:1px">SPIELER 2</div>
+    <button onclick="setPlayer(2)" style="background:linear-gradient(135deg,#1e90ff,#4db8ff);color:#fff;border:none;border-radius:12px;padding:22px 44px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(30,144,255,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(30,144,255,0.45)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 24px rgba(30,144,255,0.3)'">
+      <div style="font-size:11px;font-weight:600;opacity:0.75;margin-bottom:5px;letter-spacing:2px">SPIELER 2</div>
       <div id="ps-name2">Emil</div>
     </button>
   </div>
-  <div style="font-size:11px;color:#333;letter-spacing:1px;">Tipps des anderen bleiben bis zur Deadline verborgen.</div>
-  <div id="ps-loading" style="font-size:12px;color:#555;letter-spacing:1px;">⏳ Verbinde mit Firebase...</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.15);letter-spacing:1.5px;">Tipps des anderen bleiben bis zur Deadline verborgen.</div>
+  <div id="ps-loading" style="font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:1px;">⏳ Verbinde mit Firebase...</div>
 </div>
 
 <!-- Haupt-App -->
@@ -257,7 +264,7 @@ input[type=text]:focus{outline:none;border-color:var(--red);}
     <div class="logo-text">F1 <em>Tipp</em>spiel</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
-    <button id="player-indicator" onclick="switchPlayer()" style="background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);transition:all .2s;" title="Spieler wechseln">👤 <span id="current-player-name">?</span></button>
+    <button id="player-indicator" onclick="switchPlayer()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:7px;padding:5px 14px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);transition:all var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.09)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Spieler wechseln">👤 <span id="current-player-name">?</span></button>
     <button id="install-btn">⬇ Installieren</button>
     <div class="season-badge">2026</div>
   </div>
@@ -277,6 +284,7 @@ input[type=text]:focus{outline:none;border-color:var(--red);}
     <div id="countdown-card" style="margin-bottom:16px;"></div>
     <div id="hero"></div>
     <div class="kpi-row" id="kpis"></div>
+    <div id="quick-access"></div>
     <div class="chart-card">
       <div class="chart-head"><div class="chart-stripe"></div><div class="chart-title">Letzte 5 Rennen</div></div>
       <div class="chart-wrap" style="height:220px"><canvas id="c-last5"></canvas></div>
@@ -379,33 +387,33 @@ const TEAMS = [
 const PTS_RACE = [8,7,6,5,4,3,2,1];
 const PTS_QS   = [4,3,2,1];
 const ZONE_PTS = 1;
-const BONUS_PTS = 4;
+const BONUS_PTS = 15;
 
 // Race config: n=name, r=round, sp=sprint weekend,
 // qt=qualifying time (UTC), st=sprint time (UTC), rt=race time (UTC)
 const RC = [
-  {n:'Australien',    r:1,  sp:false, qt:'2099-01-01T00:00:00Z', rt:'2099-01-01T00:00:00Z'},
-  {n:'China',         r:2,  sp:true,  st:'2099-01-01T00:00:00Z', rt:'2099-01-01T00:00:00Z'},
-  {n:'Japan',         r:3,  sp:false, qt:'2026-03-28T07:00:00Z', rt:'2026-03-29T05:00:00Z', retro:true},
-  {n:'Miami',         r:4,  sp:true,  st:'2026-05-02T17:00:00Z', rt:'2026-05-03T19:00:00Z'},
-  {n:'Kanada',        r:5,  sp:true,  st:'2026-05-23T17:00:00Z', rt:'2026-05-24T18:00:00Z'},
-  {n:'Monaco',        r:6,  sp:false, qt:'2026-06-06T14:00:00Z', rt:'2026-06-07T13:00:00Z'},
-  {n:'Barcelona',     r:7,  sp:false, qt:'2026-06-13T14:00:00Z', rt:'2026-06-14T13:00:00Z'},
-  {n:'Österreich',    r:8,  sp:false, qt:'2026-06-27T14:00:00Z', rt:'2026-06-28T13:00:00Z'},
-  {n:'Großbritannien',r:9,  sp:true,  st:'2026-07-04T11:30:00Z', rt:'2026-07-05T14:00:00Z'},
-  {n:'Belgien',       r:10, sp:false, qt:'2026-07-18T13:00:00Z', rt:'2026-07-19T13:00:00Z'},
-  {n:'Ungarn',        r:11, sp:false, qt:'2026-07-25T14:00:00Z', rt:'2026-07-26T13:00:00Z'},
-  {n:'Niederlande',   r:12, sp:true,  st:'2026-08-22T11:30:00Z', rt:'2026-08-23T13:00:00Z'},
-  {n:'Italien',       r:13, sp:false, qt:'2026-09-05T14:00:00Z', rt:'2026-09-06T13:00:00Z'},
-  {n:'Madrid',        r:14, sp:false, qt:'2026-09-12T14:00:00Z', rt:'2026-09-13T13:00:00Z'},
-  {n:'Aserbaidschan', r:15, sp:false, qt:'2026-09-25T12:00:00Z', rt:'2026-09-26T11:00:00Z'},
-  {n:'Singapur',      r:16, sp:true,  st:'2026-10-10T09:30:00Z', rt:'2026-10-11T12:00:00Z'},
-  {n:'Austin',        r:17, sp:false, qt:'2026-10-24T21:00:00Z', rt:'2026-10-25T19:00:00Z'},
-  {n:'Mexiko',        r:18, sp:false, qt:'2026-10-31T22:00:00Z', rt:'2026-11-01T20:00:00Z'},
-  {n:'Brasilien',     r:19, sp:false, qt:'2026-11-14T18:00:00Z', rt:'2026-11-15T17:00:00Z'},
-  {n:'Las Vegas',     r:20, sp:false, qt:'2026-11-20T06:00:00Z', rt:'2026-11-21T06:00:00Z'},
-  {n:'Katar',         r:21, sp:false, qt:'2026-11-28T15:00:00Z', rt:'2026-11-29T13:00:00Z'},
-  {n:'Abu Dhabi',     r:22, sp:false, qt:'2026-12-05T13:00:00Z', rt:'2026-12-06T13:00:00Z'},
+  {n:'Australien',    r:1,  sp:false, qt:'2099-01-01T00:00:00Z', rt:'2099-01-01T00:00:00Z', flag:'🇦🇺', ci:'Albert Park Circuit',              laps:58},
+  {n:'China',         r:2,  sp:true,  st:'2099-01-01T00:00:00Z', rt:'2099-01-01T00:00:00Z', flag:'🇨🇳', ci:'Shanghai International Circuit',   laps:56},
+  {n:'Japan',         r:3,  sp:false, qt:'2026-03-28T07:00:00Z', rt:'2026-03-29T05:00:00Z', retro:true, flag:'🇯🇵', ci:'Suzuka Circuit',        laps:53},
+  {n:'Miami',         r:4,  sp:true,  st:'2026-05-02T17:00:00Z', rt:'2026-05-03T19:00:00Z', flag:'🇺🇸', ci:'Miami International Autodrome',    laps:57},
+  {n:'Kanada',        r:5,  sp:true,  st:'2026-05-23T17:00:00Z', rt:'2026-05-24T18:00:00Z', flag:'🇨🇦', ci:'Circuit Gilles Villeneuve',        laps:70},
+  {n:'Monaco',        r:6,  sp:false, qt:'2026-06-06T14:00:00Z', rt:'2026-06-07T13:00:00Z', flag:'🇲🇨', ci:'Circuit de Monaco',                laps:78},
+  {n:'Barcelona',     r:7,  sp:false, qt:'2026-06-13T14:00:00Z', rt:'2026-06-14T13:00:00Z', flag:'🇪🇸', ci:'Circuit de Barcelona-Catalunya',   laps:66},
+  {n:'Österreich',    r:8,  sp:false, qt:'2026-06-27T14:00:00Z', rt:'2026-06-28T13:00:00Z', flag:'🇦🇹', ci:'Red Bull Ring',                    laps:71},
+  {n:'Großbritannien',r:9,  sp:true,  st:'2026-07-04T11:30:00Z', rt:'2026-07-05T14:00:00Z', flag:'🇬🇧', ci:'Silverstone Circuit',              laps:52},
+  {n:'Belgien',       r:10, sp:false, qt:'2026-07-18T13:00:00Z', rt:'2026-07-19T13:00:00Z', flag:'🇧🇪', ci:'Circuit de Spa-Francorchamps',     laps:44},
+  {n:'Ungarn',        r:11, sp:false, qt:'2026-07-25T14:00:00Z', rt:'2026-07-26T13:00:00Z', flag:'🇭🇺', ci:'Hungaroring',                      laps:70},
+  {n:'Niederlande',   r:12, sp:true,  st:'2026-08-22T11:30:00Z', rt:'2026-08-23T13:00:00Z', flag:'🇳🇱', ci:'Circuit Zandvoort',                laps:72},
+  {n:'Italien',       r:13, sp:false, qt:'2026-09-05T14:00:00Z', rt:'2026-09-06T13:00:00Z', flag:'🇮🇹', ci:'Autodromo Nazionale Monza',        laps:53},
+  {n:'Madrid',        r:14, sp:false, qt:'2026-09-12T14:00:00Z', rt:'2026-09-13T13:00:00Z', flag:'🇪🇸', ci:'Madrid Street Circuit',            laps:50},
+  {n:'Aserbaidschan', r:15, sp:false, qt:'2026-09-25T12:00:00Z', rt:'2026-09-26T11:00:00Z', flag:'🇦🇿', ci:'Baku City Circuit',                laps:51},
+  {n:'Singapur',      r:16, sp:true,  st:'2026-10-10T09:30:00Z', rt:'2026-10-11T12:00:00Z', flag:'🇸🇬', ci:'Marina Bay Street Circuit',        laps:62},
+  {n:'Austin',        r:17, sp:false, qt:'2026-10-24T21:00:00Z', rt:'2026-10-25T19:00:00Z', flag:'🇺🇸', ci:'Circuit of the Americas',          laps:56},
+  {n:'Mexiko',        r:18, sp:false, qt:'2026-10-31T22:00:00Z', rt:'2026-11-01T20:00:00Z', flag:'🇲🇽', ci:'Autódromo Hermanos Rodríguez',     laps:71},
+  {n:'Brasilien',     r:19, sp:false, qt:'2026-11-14T18:00:00Z', rt:'2026-11-15T17:00:00Z', flag:'🇧🇷', ci:'Autódromo José Carlos Pace',       laps:71},
+  {n:'Las Vegas',     r:20, sp:false, qt:'2026-11-20T06:00:00Z', rt:'2026-11-21T06:00:00Z', flag:'🇺🇸', ci:'Las Vegas Strip Circuit',          laps:50},
+  {n:'Katar',         r:21, sp:false, qt:'2026-11-28T15:00:00Z', rt:'2026-11-29T13:00:00Z', flag:'🇶🇦', ci:'Lusail International Circuit',     laps:57},
+  {n:'Abu Dhabi',     r:22, sp:false, qt:'2026-12-05T13:00:00Z', rt:'2026-12-06T13:00:00Z', flag:'🇦🇪', ci:'Yas Marina Circuit',               laps:58},
 ];
 
 // ══════════════════════════════════════════════════════
@@ -430,8 +438,10 @@ function mkRace(cfg) {
 
 function mkBonus() {
   return {
-    wdc: {tip1:'', tip2:'', actual:'', locked:false},
-    wcc: {tip1:'', tip2:'', actual:'', locked:false}
+    wdc:  {tip1:'', tip2:'', actual:'', locked:false},
+    wcc:  {tip1:'', tip2:'', actual:'', locked:false},
+    pole: {tip1:'', tip2:'', actual:'', locked:false},
+    fl:   {tip1:'', tip2:'', actual:'', locked:false}
   };
 }
 
@@ -476,7 +486,7 @@ function mergeFirebase(fbData) {
 
   // Bonus
   if (fbData.bonus) {
-    ['wdc','wcc'].forEach(k => {
+    ['wdc','wcc','pole','fl'].forEach(k => {
       if (fbData.bonus[k]) Object.assign(S.bonus[k], fbData.bonus[k]);
     });
   }
@@ -673,15 +683,13 @@ function ptsPerPos(tips, result, ptTable) {
 function recompute() {
   // Bonus
   let bp1 = 0, bp2 = 0;
-  const bw = S.bonus.wdc, bc = S.bonus.wcc;
-  if (bw.locked && bw.actual) {
-    if (bw.tip1 === bw.actual) bp1 += BONUS_PTS;
-    if (bw.tip2 === bw.actual) bp2 += BONUS_PTS;
-  }
-  if (bc.locked && bc.actual) {
-    if (bc.tip1 === bc.actual) bp1 += BONUS_PTS;
-    if (bc.tip2 === bc.actual) bp2 += BONUS_PTS;
-  }
+  ['wdc','wcc','pole','fl'].forEach(k => {
+    const b = S.bonus[k];
+    if (b && b.locked && b.actual) {
+      if (b.tip1 === b.actual) bp1 += BONUS_PTS;
+      if (b.tip2 === b.actual) bp2 += BONUS_PTS;
+    }
+  });
   S.bonusPts1 = bp1;
   S.bonusPts2 = bp2;
 
@@ -945,7 +953,8 @@ function renderRaceList() {
       <div class="race-header" onclick="toggleCard(${i})">
         <div class="race-num">R${String(i+1).padStart(2,'0')}</div>
         <div class="race-meta">
-          <div class="race-name-txt">${r.name}</div>
+          <div class="race-name-txt">${cfg.flag} ${r.name}</div>
+          <div class="race-circuit">${cfg.ci} · ${cfg.laps} Runden</div>
           <div class="race-tags">${typeTags}</div>
         </div>
         <div class="race-pts-prev">
@@ -960,6 +969,20 @@ function renderRaceList() {
 }
 
 function toggleCard(i) { document.getElementById(`rc-${i}`).classList.toggle('open'); }
+
+function jumpToRace(ri) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector('[data-tab="rennen"]').classList.add('active');
+  document.getElementById('tab-rennen').classList.add('active');
+  setTimeout(() => {
+    const card = document.getElementById(`rc-${ri}`);
+    if (card) {
+      card.classList.add('open');
+      card.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  }, 60);
+}
 
 // ══════════════════════════════════════════════════════
 // MANUELLES SPERREN
@@ -979,31 +1002,39 @@ function manualLockSess(ri, sessType) {
 // BONUS SECTION
 // ══════════════════════════════════════════════════════
 function renderBonus() {
-  const bw = S.bonus.wdc, bc = S.bonus.wcc;
   const bp1 = S.bonusPts1, bp2 = S.bonusPts2;
 
-  function bonusCard(key, title, sub, tip1, tip2, actual, locked, useTeams) {
-    const lockedHtml = locked ? `
-      <div class="bonus-locked-row">
-        <span class="bonus-locked-icon">🔒</span>
-        <span class="bonus-locked-text">Gesperrt — Ergebnis: <b>${actual||'—'}</b></span>
-      </div>` : '';
+  function bonusCard(key, title, sub, useTeams) {
+    const b = S.bonus[key];
+    if (!b) return '';
+    const {tip1, tip2, actual, locked} = b;
+    const myIsP1 = currentPlayer === 1;
+    const myTip   = myIsP1 ? tip1  : tip2;
+    const oTip    = myIsP1 ? tip2  : tip1;
+    const myField = myIsP1 ? 'tip1' : 'tip2';
+    const myCls   = myIsP1 ? 'sel-s1' : 'sel-s2';
 
     const selFn = useTeams
       ? (v,c,d,da) => teamSel(v,c,d,da)
       : (v,c,d,da) => driverSel(v,c,d,da);
 
-    const t1Sel = locked
-      ? `<span class="locked-tip${!tip1?' empty':''}">${tip1||'—'}</span>`
-      : selFn(tip1,'sel-s1',false,{bkey:key,bfield:'tip1'});
-    const t2Sel = locked
-      ? `<span class="locked-tip${!tip2?' empty':''}">${tip2||'—'}</span>`
-      : selFn(tip2,'sel-s2',false,{bkey:key,bfield:'tip2'});
+    // Eigener Tipp: editierbar; fremder Tipp: bis Sperrung verborgen
+    let mySelHtml, oSelHtml;
+    if (locked) {
+      mySelHtml = `<span class="locked-tip${!myTip?' empty':''}">${myTip||'—'}</span>`;
+      oSelHtml  = `<span class="locked-tip${!oTip?' empty':''}">${oTip||'—'}</span>`;
+    } else {
+      mySelHtml = selFn(myTip, myCls, false, {bkey:key, bfield:myField});
+      oSelHtml  = `<span style="color:var(--border2);letter-spacing:3px;font-size:13px;line-height:2;">●●●</span>`;
+    }
+
+    const t1Html = myIsP1 ? mySelHtml : oSelHtml;
+    const t2Html = myIsP1 ? oSelHtml  : mySelHtml;
+
     const actSel = locked
       ? `<span class="locked-tip${!actual?' empty':''}">${actual||'—'}</span>`
-      : selFn(actual,'sel-res',false,{bkey:key,bfield:'actual'});
+      : selFn(actual, 'sel-res', false, {bkey:key, bfield:'actual'});
 
-    // Punkte anzeigen wenn gesperrt
     let ptsHtml = '';
     if (locked && actual) {
       const p1 = tip1===actual?BONUS_PTS:0, p2 = tip2===actual?BONUS_PTS:0;
@@ -1014,17 +1045,23 @@ function renderBonus() {
       </div>`;
     }
 
+    const lockedHtml = locked ? `
+      <div class="bonus-locked-row">
+        <span class="bonus-locked-icon">🔒</span>
+        <span class="bonus-locked-text">Gesperrt — Ergebnis: <b>${actual||'—'}</b></span>
+      </div>` : '';
+
     return `<div class="bonus-card">
       <div class="bonus-title">${title}</div>
       <div class="bonus-sub">${sub}</div>
       <div class="bonus-grid">
         <div>
-          <div class="bonus-col-label c1">Tipp ${S.name1}</div>
-          ${t1Sel}
+          <div class="bonus-col-label c1">${S.name1}</div>
+          ${t1Html}
         </div>
         <div>
-          <div class="bonus-col-label c2">Tipp ${S.name2}</div>
-          ${t2Sel}
+          <div class="bonus-col-label c2">${S.name2}</div>
+          ${t2Html}
         </div>
         <div>
           <div class="bonus-col-label cg">Ergebnis</div>
@@ -1038,11 +1075,11 @@ function renderBonus() {
   }
 
   document.getElementById('bonus-section').innerHTML =
-    bonusCard('wdc','Fahrerweltmeister','Richtige Antwort = 4 Punkte. Einmal gesperrt, nie mehr änderbar.',
-      bw.tip1, bw.tip2, bw.actual, bw.locked, false) +
-    bonusCard('wcc','Konstrukteursweltmeister','Richtige Antwort = 4 Punkte. Einmal gesperrt, nie mehr änderbar.',
-      bc.tip1, bc.tip2, bc.actual, bc.locked, true) +
-    `<div style="background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;gap:24px;align-items:center;">
+    bonusCard('wdc',  'Fahrerweltmeister',        'Wer wird Weltmeister? Richtig = '+BONUS_PTS+' Punkte. Einmal gesperrt, nie mehr änderbar.', false) +
+    bonusCard('wcc',  'Konstrukteursweltmeister', 'Welches Team gewinnt die WM? Richtig = '+BONUS_PTS+' Punkte. Einmal gesperrt, nie mehr änderbar.', true) +
+    bonusCard('pole', 'Meiste Pole Positions',    'Welcher Fahrer holt die meisten Poles? Richtig = '+BONUS_PTS+' Punkte. Am Saisonende sperren.', false) +
+    bonusCard('fl',   'Meiste Schnellste Runden', 'Welcher Fahrer fährt die meisten Fastest Laps? Richtig = '+BONUS_PTS+' Punkte. Am Saisonende sperren.', false) +
+    `<div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;gap:24px;align-items:center;">
       <div style="flex:1;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2)">Bonus Punkte Gesamt</div>
       <div style="display:flex;gap:20px;">
         <div class="pp-item"><div class="pp-val c1">${bp1}</div><div class="pp-label">${S.name1}</div></div>
@@ -1230,6 +1267,45 @@ function renderDash() {
     <div class="kpi"><div class="kpi-val">${RC.length-d.length}</div><div class="kpi-label">Noch ausstehend</div></div>
     <div class="kpi"><div class="kpi-val">${w1}–${w2}</div><div class="kpi-label">Siege S1 : S2</div></div>
     <div class="kpi"><div class="kpi-val">${gap}</div><div class="kpi-label">Punktedifferenz</div></div>`;
+
+  // Quick Access: offene Tipps
+  const openRaces = RC.map((cfg,i) => {
+    const r = S.races[i];
+    if (r.done) return null;
+    const sessions = [];
+    const nowMs = Date.now();
+    if (cfg.st && !cfg.st.startsWith('2099') && new Date(cfg.st).getTime() > nowMs && !r.sprintLocked)
+      sessions.push({label:'Sprint', cls:'sprint'});
+    if (cfg.qt && !cfg.qt.startsWith('2099') && new Date(cfg.qt).getTime() > nowMs && !r.qualiLocked)
+      sessions.push({label:'Qualifying', cls:'quali'});
+    if (cfg.rt && !cfg.rt.startsWith('2099') && new Date(cfg.rt).getTime() > nowMs && !r.raceLocked)
+      sessions.push({label:'Rennen', cls:'race-tag'});
+    return sessions.length ? {cfg, r, i, sessions} : null;
+  }).filter(Boolean).slice(0,4);
+
+  const qa = document.getElementById('quick-access');
+  if (openRaces.length) {
+    qa.innerHTML = `<div class="chart-card" style="margin-bottom:16px;">
+      <div class="chart-head"><div class="chart-stripe" style="background:var(--green)"></div><div class="chart-title">Offene Tipps</div><span style="font-size:11px;color:var(--green);margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:700;">${openRaces.length} Rennen</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${openRaces.map(({cfg,i,sessions})=>`
+          <div onclick="jumpToRace(${i})" style="display:flex;align-items:center;gap:12px;background:rgba(0,230,118,0.04);border:1px solid rgba(0,230,118,0.12);border-radius:var(--radius-sm);padding:11px 14px;cursor:pointer;transition:background var(--transition);" onmouseover="this.style.background='rgba(0,230,118,0.08)'" onmouseout="this.style.background='rgba(0,230,118,0.04)'">
+            <span style="font-size:20px;line-height:1;">${cfg.flag}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;">${cfg.n}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">${cfg.ci}</div>
+            </div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+              ${sessions.map(s=>`<span class="tag ${s.cls}" style="font-size:9px;">${s.label}</span>`).join('')}
+            </div>
+            <div style="font-size:11px;color:var(--green);font-weight:700;font-family:'Barlow Condensed',sans-serif;flex-shrink:0;margin-left:4px;">→</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  } else {
+    qa.innerHTML = '';
+  }
 }
 
 // ══════════════════════════════════════════════════════
